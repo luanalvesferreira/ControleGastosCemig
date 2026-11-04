@@ -106,6 +106,7 @@
   buildDateOptions();
   document.querySelectorAll(".period-options input").forEach(input=>input.addEventListener("change",()=>{updatePeriodLabel();buildDateOptions();updateDateLabel();syncDiscountInput();render()}));
   $("period-all").addEventListener("click",()=>{document.querySelectorAll(".period-options input").forEach(x=>x.checked=true);updatePeriodLabel();buildDateOptions();updateDateLabel();syncDiscountInput();render()});
+  $("period-clear").addEventListener("click",()=>{document.querySelectorAll(".period-options input").forEach(x=>x.checked=false);updatePeriodLabel();buildDateOptions();updateDateLabel();syncDiscountInput();render()});
   $("date-all").addEventListener("click",()=>setDateChecks(true));
   $("date-clear").addEventListener("click",()=>setDateChecks(false));
   $("apply-discount").addEventListener("click",()=>{const value=Number($("discount-input").value);const r=periodReadings(),e=periodExpenses();const gross=sum(r,x=>x.kwh*rate)+sum(e,x=>x.value);if(!Number.isFinite(value)||value<0){alert("Informe um desconto válido em reais.");return}if(value>gross){alert("O desconto não pode ser maior que o total de custos do período ("+currency.format(gross)+").");return}discounts[periodKey()]=value;saveDiscounts();render()});

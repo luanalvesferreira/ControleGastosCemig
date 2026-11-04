@@ -25,3 +25,6 @@
   .toolbar>.discount-control label{flex:1 1 120px;width:auto;min-width:110px}
   .toolbar>.discount-control .discount-button{flex:0 1 auto;padding-left:12px;padding-right:12px}
 }
+
+/* v1.1.11 — dia da semana no detalhe do consumo diário */
+.chart-tooltip .day-weekday{font-size:13px;font-weight:650;color:#72847a;text-transform:capitalize;margin-top:-5px}

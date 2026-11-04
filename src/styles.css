@@ -10,3 +10,18 @@
 .range-picker{flex:0 1 225px;min-width:180px}.range-menu{position:relative}.range-menu summary{height:40px;padding:0 30px 0 12px;border:1px solid #d7e4db;border-radius:9px;background:#fff;display:flex;align-items:center;cursor:pointer;font-size:12px;color:#17352a;white-space:nowrap;list-style:none;position:relative}.range-menu summary:after{content:'⌄';position:absolute;right:10px}.range-options{position:absolute;z-index:90;top:calc(100% + 7px);left:0;width:255px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;box-shadow:0 12px 28px #163b2820}.range-options label{display:flex;flex-direction:row;align-items:center;gap:8px;padding:8px 2px;font-size:11px;white-space:nowrap}.range-options input{width:15px;height:15px}.range-options button{margin-top:7px;padding:7px 10px;border-radius:7px;background:var(--mint);color:var(--green);font-size:10px;font-weight:750}
 @media(max-width:1050px){.toolbar>.range-picker{flex:1 1 180px}}
 @media(max-width:600px){.toolbar>.range-picker{min-width:0;width:100%}}
+
+
+/* v1.1.10 — mantém o botão de desconto dentro da faixa de filtros */
+@media (min-width: 1051px){
+  .toolbar{gap:10px}
+  .toolbar>.period-picker{flex:0 1 185px;min-width:155px}
+  .toolbar>.range-picker{flex:0 1 215px;min-width:175px}
+  .toolbar>.date-picker{flex:0 1 160px;min-width:130px}
+  .toolbar>label{flex:0 1 175px;min-width:145px}
+  .toolbar>.primary{flex:0 0 auto;padding-left:13px;padding-right:13px}
+  .toolbar>.feedback{flex:0 1 82px;max-width:82px}
+  .toolbar>.discount-control{flex:1 1 300px;min-width:280px;gap:8px;padding-left:12px}
+  .toolbar>.discount-control label{flex:1 1 120px;width:auto;min-width:110px}
+  .toolbar>.discount-control .discount-button{flex:0 1 auto;padding-left:12px;padding-right:12px}
+}

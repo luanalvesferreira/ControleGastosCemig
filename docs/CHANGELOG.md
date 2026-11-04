@@ -1,5 +1,11 @@
 # Histórico de versões
 
+## [1.1.8] — 04/11/2026
+- Adiciona filtro de períodos personalizados com os intervalos 18/09/2026–20/10/2026 e 20/10/2026–19/11/2026.
+- Ao selecionar períodos personalizados, eles passam a controlar o recorte de datas sem conflito com os filtros de mês e dias individuais.
+- Permite selecionar um ou ambos os intervalos e associa descontos à seleção de períodos.
+
+
 ## [1.1.7] — 04/11/2026
 - Fecha os menus de período e dias ao clicar fora deles.
 - Mantém o menu aberto durante cliques nas opções e permite fechar com Esc.

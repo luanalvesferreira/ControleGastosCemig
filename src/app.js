@@ -115,6 +115,19 @@
   $("period-clear").addEventListener("click",()=>{document.querySelectorAll(".period-options input").forEach(x=>x.checked=false);updatePeriodLabel();buildDateOptions();updateDateLabel();syncDiscountInput();render()});
   $("date-all").addEventListener("click",()=>setDateChecks(true));
   $("date-clear").addEventListener("click",()=>setDateChecks(false));
+  $("clear-all-filters").addEventListener("click",()=>{
+    // Restaura a visão completa: todos os meses, sem intervalo personalizado e sem dias específicos.
+    document.querySelectorAll(".period-options input").forEach(x=>x.checked=true);
+    document.querySelectorAll(".range-options input").forEach(x=>x.checked=false);
+    updatePeriodLabel();
+    updateRangeLabel();
+    buildDateOptions();
+    updateDateLabel();
+    $("date-checks").querySelectorAll("input").forEach(x=>x.checked=false);
+    updateDateLabel();
+    document.querySelectorAll(".toolbar details[open]").forEach(menu=>menu.removeAttribute("open"));
+    render();
+  });
   $("apply-discount").addEventListener("click",()=>{const value=Number($("discount-input").value);const r=periodReadings(),e=periodExpenses();const gross=sum(r,x=>x.kwh*rate);if(!Number.isFinite(value)||value<0){alert("Informe um desconto válido em reais.");return}if(value>gross){alert("O desconto não pode ser maior que o total de custos do período ("+currency.format(gross)+").");return}discounts.global=value;saveDiscounts();syncDiscountInput();render()});
   $("entry-date").value=new Date().toLocaleDateString("en-CA");
   $("entry-form").addEventListener("submit",ev=>{ev.preventDefault();const value=Number($("entry-value").value);const description=$("entry-description").value.trim();const date=$("entry-date").value;if(!date||!description||!Number.isFinite(value)||value<=0){alert("Preencha data, descrição e valor válido.");return}expenses.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),date,description,category:$("entry-category").value,value});saveExpenses();$("entry-form").reset();$("entry-date").value=new Date().toLocaleDateString("en-CA");render()});

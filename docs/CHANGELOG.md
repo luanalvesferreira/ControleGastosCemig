@@ -1,5 +1,12 @@
 # Histórico de versões
 
+## [1.1.6] — 04/11/2026
+- Remove a mensagem de status do desconto abaixo do campo.
+- Corrige os menus de seleção para não serem cortados pelo contêiner de filtros.
+- Adiciona filtro multisseleção por datas individuais da base de consumo.
+- Faz o card de custo estimado de energia exibir o valor líquido após desconto; o DRE mantém a dedução discriminada e evita descontar duas vezes.
+
+
 ## [1.1.5] — 04/11/2026
 - Permite selecionar um ou vários meses no período de análise, inclusive todo o histórico.
 - Mantém os controles financeiros em uma única linha; em telas estreitas, a faixa permite rolagem horizontal sem quebrar os campos.

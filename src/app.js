@@ -74,6 +74,17 @@
   }
   $("rate-input").value=rate.toFixed(4);
   $("save-rate").addEventListener("click",()=>{const next=Number($("rate-input").value);if(!Number.isFinite(next)||next<0){alert("Informe uma tarifa válida.");return}rate=next;localStorage.setItem(RATE_KEY,String(rate));$("rate-feedback").textContent="Tarifa aplicada: "+currency.format(rate)+"/kWh";render()});
+  // Fecha os menus de filtros somente quando o clique ocorre fora deles.
+  document.addEventListener("click", ev => {
+    document.querySelectorAll(".toolbar details[open]").forEach(menu => {
+      if (!menu.contains(ev.target)) menu.removeAttribute("open");
+    });
+  });
+  document.addEventListener("keydown", ev => {
+    if (ev.key === "Escape") {
+      document.querySelectorAll(".toolbar details[open]").forEach(menu => menu.removeAttribute("open"));
+    }
+  });
   buildDateOptions();
   document.querySelectorAll(".period-options input").forEach(input=>input.addEventListener("change",()=>{updatePeriodLabel();document.querySelectorAll("#date-checks input").forEach(d=>{if(!selectedMonths().includes(d.value.slice(0,7)))d.checked=false});updateDateLabel();syncDiscountInput();render()}));
   $("period-all").addEventListener("click",()=>{document.querySelectorAll(".period-options input").forEach(x=>x.checked=true);updatePeriodLabel();updateDateLabel();syncDiscountInput();render()});

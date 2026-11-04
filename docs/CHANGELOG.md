@@ -2,7 +2,7 @@
 - Ajusta a largura dos controles para manter todos os filtros e o desconto em uma única linha em telas desktop largas, no zoom padrão.
 - Adiciona favicon SVG com o mesmo símbolo de raio e a mesma paleta da marca exibida no título do site.
 
-## [1.1.12] — 04/11/2026\n- Adiciona “Limpar seleção” aos filtros de mês, período personalizado e dias da base.\n- Reorganiza a barra em telas largas para colocar o desconto em uma segunda linha, mantendo o botão dentro do painel.\n- Ajusta o card diário para exibir o dia da semana em um elemento próprio logo abaixo da data.\n\n## [1.1.11] — 04/11/2026
+## [1.1.14] — 04/11/2026\n- Corrige a chave de armazenamento do desconto para usar corretamente o período personalizado selecionado.\n- Valida o desconto em relação ao custo de energia e atualiza imediatamente o campo, DRE e indicadores após aplicar.\n- Ajusta o grid dos filtros para manter o botão de desconto na mesma linha em resoluções desktop compatíveis com zoom de 100%.\n\n## [1.1.12] — 04/11/2026\n- Adiciona “Limpar seleção” aos filtros de mês, período personalizado e dias da base.\n- Reorganiza a barra em telas largas para colocar o desconto em uma segunda linha, mantendo o botão dentro do painel.\n- Ajusta o card diário para exibir o dia da semana em um elemento próprio logo abaixo da data.\n\n## [1.1.11] — 04/11/2026
 - Exibe o dia da semana logo abaixo da data no card de detalhes do consumo diário.
 
 ## [1.1.10] — 04/11/2026\n- Ajusta a distribuição de larguras dos filtros em telas largas para manter o botão “Aplicar desconto” dentro do painel.\n- Permite que o campo de desconto reduza sua largura de forma controlada sem cortar o botão.\n\n# Histórico de versões

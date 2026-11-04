@@ -1,5 +1,11 @@
 # Histórico de versões
 
+## [1.1.9] — 04/11/2026
+- Sincroniza os filtros de mês e dias: a lista de dias exibe somente datas dos meses selecionados.
+- Ao alterar os meses, atualiza a lista de dias e preserva apenas as datas ainda compatíveis.
+- Mantém o filtro de período personalizado independente dos filtros de mês e dias.
+
+
 ## [1.1.8] — 04/11/2026
 - Adiciona filtro de períodos personalizados com os intervalos 18/09/2026–20/10/2026 e 20/10/2026–19/11/2026.
 - Ao selecionar períodos personalizados, eles passam a controlar o recorte de datas sem conflito com os filtros de mês e dias individuais.

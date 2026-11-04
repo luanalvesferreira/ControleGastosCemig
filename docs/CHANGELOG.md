@@ -1,3 +1,7 @@
+## [1.1.13] — 04/11/2026
+- Ajusta a largura dos controles para manter todos os filtros e o desconto em uma única linha em telas desktop largas, no zoom padrão.
+- Adiciona favicon SVG com o mesmo símbolo de raio e a mesma paleta da marca exibida no título do site.
+
 ## [1.1.12] — 04/11/2026\n- Adiciona “Limpar seleção” aos filtros de mês, período personalizado e dias da base.\n- Reorganiza a barra em telas largas para colocar o desconto em uma segunda linha, mantendo o botão dentro do painel.\n- Ajusta o card diário para exibir o dia da semana em um elemento próprio logo abaixo da data.\n\n## [1.1.11] — 04/11/2026
 - Exibe o dia da semana logo abaixo da data no card de detalhes do consumo diário.
 

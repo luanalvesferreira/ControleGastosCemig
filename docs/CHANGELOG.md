@@ -1,3 +1,7 @@
+## [1.1.16] — 04/11/2026
+- Adiciona um botão compacto somente com ícone ao lado de “Aplicar desconto” para zerar e remover o desconto global.
+- Ao limpar, atualiza o campo, os cards e o DRE imediatamente, preservando os filtros selecionados.
+
 ## [1.1.13] — 04/11/2026
 - Ajusta a largura dos controles para manter todos os filtros e o desconto em uma única linha em telas desktop largas, no zoom padrão.
 - Adiciona favicon SVG com o mesmo símbolo de raio e a mesma paleta da marca exibida no título do site.

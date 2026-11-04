@@ -1,6 +1,6 @@
 (() => {
   "use strict";
-  const STORAGE_KEY="cemig-dre-expenses-v1", RATE_KEY="cemig-dre-rate-v1";
+  const STORAGE_KEY="cemig-dre-expenses-v1", RATE_KEY="cemig-dre-rate-v1", DISCOUNT_KEY="cemig-dre-discounts-v1";
   const $=id=>document.getElementById(id);
   const currency=new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"});
   const number=new Intl.NumberFormat("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -8,6 +8,11 @@
   const readings=(window.CEMIG_BASE?.readings||[]).map(([date,kwh])=>({date,kwh:Number(kwh)}));
   let expenses=loadExpenses();
   let rate=loadRate();
+  let discounts=loadDiscounts();
+  function loadDiscounts(){try{const x=JSON.parse(localStorage.getItem(DISCOUNT_KEY)||"{}");return x&&typeof x==="object"?x:{}}catch{return {}}}
+  function saveDiscounts(){localStorage.setItem(DISCOUNT_KEY,JSON.stringify(discounts))}
+  function currentDiscount(){return Number(discounts[selectedMonth()||"all"]||0)}
+  function syncDiscountInput(){$("discount-input").value=currentDiscount().toFixed(2);$("discount-feedback").textContent=currentDiscount()>0?"Desconto salvo para este período":""}
   function loadExpenses(){try{const x=JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");return Array.isArray(x)?x:[]}catch{return []}}
   function loadRate(){const n=Number(localStorage.getItem(RATE_KEY));return Number.isFinite(n)&&n>=0?n:(window.CEMIG_BASE?.rateDefault||1.1780)}
   function saveExpenses(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(expenses))}catch{alert("Não foi possível salvar no navegador. Exporte seus dados para backup.")}}
@@ -43,12 +48,13 @@
   }
   function render(){
     const r=periodReadings(), e=periodExpenses();
-    const kwh=sum(r,x=>x.kwh), energy=kwh*rate, other=sum(e,x=>x.value), total=energy+other;
+    const kwh=sum(r,x=>x.kwh), energy=kwh*rate, other=sum(e,x=>x.value), gross=energy+other, discount=currentDiscount(), total=gross-discount;
     $("total-consumption").textContent=number.format(kwh)+" kWh";
     $("days-count").textContent=r.length+" dias com leitura";
     $("energy-cost").textContent=currency.format(energy);
     $("other-expenses").textContent=currency.format(other);
     $("grand-total").textContent=currency.format(total);
+    $("dre-discount").textContent="− "+currency.format(discount);
     $("dre-kwh").textContent=number.format(kwh)+" kWh";
     $("dre-energy").textContent=currency.format(energy);
     $("dre-other").textContent=currency.format(other);
@@ -60,10 +66,12 @@
   }
   $("rate-input").value=rate.toFixed(4);
   $("save-rate").addEventListener("click",()=>{const next=Number($("rate-input").value);if(!Number.isFinite(next)||next<0){alert("Informe uma tarifa válida.");return}rate=next;localStorage.setItem(RATE_KEY,String(rate));$("rate-feedback").textContent="Tarifa aplicada: "+currency.format(rate)+"/kWh";render()});
-  $("filter-month").addEventListener("change",render);
+  $("filter-month").addEventListener("change",()=>{syncDiscountInput();render()});
+  $("apply-discount").addEventListener("click",()=>{const value=Number($("discount-input").value);const r=periodReadings(),e=periodExpenses();const gross=sum(r,x=>x.kwh*rate)+sum(e,x=>x.value);if(!Number.isFinite(value)||value<0){alert("Informe um desconto válido em reais.");return}if(value>gross){alert("O desconto não pode ser maior que o total de custos do período ("+currency.format(gross)+").");return}discounts[selectedMonth()||"all"]=value;saveDiscounts();$("discount-feedback").textContent=value>0?"Desconto aplicado: "+currency.format(value):"Desconto removido";render()});
   $("entry-date").value=new Date().toLocaleDateString("en-CA");
   $("entry-form").addEventListener("submit",ev=>{ev.preventDefault();const value=Number($("entry-value").value);const description=$("entry-description").value.trim();const date=$("entry-date").value;if(!date||!description||!Number.isFinite(value)||value<=0){alert("Preencha data, descrição e valor válido.");return}expenses.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),date,description,category:$("entry-category").value,value});saveExpenses();$("entry-form").reset();$("entry-date").value=new Date().toLocaleDateString("en-CA");render()});
   $("history-body").addEventListener("click",ev=>{const b=ev.target.closest("[data-delete]");if(!b)return;if(!confirm("Excluir esta despesa?"))return;expenses=expenses.filter(e=>e.id!==b.dataset.delete);saveExpenses();render()});
   $("export-csv").addEventListener("click",()=>{const rows=[["Tipo","Data","Descrição","Categoria","Consumo (kWh)","Tarifa (R$/kWh)","Valor estimado (R$)"],...periodReadings().map(r=>["Consumo diário",r.date,"Leitura Cemig","Energia",r.kwh,rate,(r.kwh*rate).toFixed(2)]),...periodExpenses().map(e=>["Despesa adicional",e.date,e.description,e.category,"",rate,e.value.toFixed(2)])];const csv="\uFEFF"+rows.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="dre-cemig-"+(selectedMonth()||"historico")+".csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)});
+  syncDiscountInput();
   render();
 })();

@@ -28,3 +28,21 @@
 
 /* v1.1.11 — dia da semana no detalhe do consumo diário */
 .chart-tooltip .day-weekday{font-size:13px;font-weight:650;color:#72847a;text-transform:capitalize;margin-top:-5px}
+
+
+/* v1.1.12 — ações de limpeza e layout sem corte */
+.filter-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.filter-actions button{padding:7px 9px;border-radius:7px;background:var(--mint);color:var(--green);font-size:10px;font-weight:750}
+.period-options>.filter-actions button{margin-top:0}
+@media(min-width:1051px){
+  .toolbar{flex-wrap:wrap;row-gap:12px}
+  .toolbar>.period-picker{flex:1 1 170px;min-width:150px}
+  .toolbar>.range-picker{flex:1 1 200px;min-width:170px}
+  .toolbar>.date-picker{flex:1 1 145px;min-width:125px}
+  .toolbar>label{flex:1 1 165px;min-width:145px}
+  .toolbar>.primary{flex:0 0 auto}
+  .toolbar>.feedback{flex:0 1 85px;max-width:85px}
+  .toolbar>.discount-control{flex:1 1 100%;width:100%;justify-content:flex-end;border-left:0;border-top:1px solid var(--line);padding:12px 0 0;margin:0}
+  .toolbar>.discount-control label{width:190px;min-width:150px;flex:0 0 190px}
+}
+.chart-tooltip .day-weekday{font-size:13px;font-weight:650;color:#72847a;text-transform:capitalize;margin-top:-5px;line-height:1.3}

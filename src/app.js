@@ -11,7 +11,7 @@
   let discounts=loadDiscounts();
   function loadDiscounts(){try{const x=JSON.parse(localStorage.getItem(DISCOUNT_KEY)||"{}");return x&&typeof x==="object"?x:{}}catch{return {}}}
   function saveDiscounts(){localStorage.setItem(DISCOUNT_KEY,JSON.stringify(discounts))}
-  function currentDiscount(){return Number(discounts[periodKey()]||0)}
+  function currentDiscount(){return Number(discounts[rangeKey()?"range:"+rangeKey():periodKey()]||0)}
   function syncDiscountInput(){$("discount-input").value=currentDiscount().toFixed(2)}
   function loadExpenses(){try{const x=JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");return Array.isArray(x)?x:[]}catch{return []}}
   function loadRate(){const n=Number(localStorage.getItem(RATE_KEY));return Number.isFinite(n)&&n>=0?n:(window.CEMIG_BASE?.rateDefault||1.1780)}
@@ -22,9 +22,18 @@
   function selectedMonth(){const m=selectedMonths();return m.length===1?m[0]:m.length===3?"":m.join(",")}
   function periodKey(){const m=selectedMonths();return m.length===3?"all":m.length?m.sort().join("|"):"none"}
   function updatePeriodLabel(){const m=selectedMonths();$("period-summary").textContent=m.length===0?"Nenhum mês":m.length===3?"Todo o histórico":m.length===1?monthNames[m[0]]:m.length+" meses selecionados"}
+  const customRanges = {p1:{start:"2026-09-18",end:"2026-10-20",label:"18/09/2026 a 20/10/2026"},p2:{start:"2026-10-20",end:"2026-11-19",label:"20/10/2026 a 19/11/2026"}};
+  function selectedRanges(){return [...document.querySelectorAll(".range-options input:checked")].map(x=>x.value)}
+  function rangeKey(){const r=selectedRanges().sort();return r.length?r.join("|"):null}
+  function updateRangeLabel(){const r=selectedRanges();$("range-summary").textContent=!r.length?"Todos os períodos":r.length===1?customRanges[r[0]].label:r.length+" períodos selecionados"}
   function selectedDates(){return [...document.querySelectorAll("#date-checks input:checked")].map(x=>x.value)}
   function dateFilterActive(){return selectedDates().length>0}
-  function inPeriod(date){const m=selectedMonths();return m.includes(date.slice(0,7))&&(!dateFilterActive()||selectedDates().includes(date))}
+  function inPeriod(date){
+    const ranges=selectedRanges();
+    if(ranges.length)return ranges.some(key=>date>=customRanges[key].start&&date<=customRanges[key].end);
+    const m=selectedMonths();
+    return m.includes(date.slice(0,7))&&(!dateFilterActive()||selectedDates().includes(date));
+  }
   function periodReadings(){return readings.filter(r=>inPeriod(r.date))}
   function periodExpenses(){return expenses.filter(e=>inPeriod(e.date)).sort((a,b)=>b.date.localeCompare(a.date))}
   function buildDateOptions(){const dates=[...new Set(readings.map(r=>r.date))].sort();$("date-checks").innerHTML=dates.map(d=>'<label><input type="checkbox" value="'+d+'"> '+fmtDate(d)+'</label>').join("");$("date-checks").querySelectorAll("input").forEach(x=>x.addEventListener("change",()=>{updateDateLabel();render()}))}
@@ -85,6 +94,8 @@
       document.querySelectorAll(".toolbar details[open]").forEach(menu => menu.removeAttribute("open"));
     }
   });
+  document.querySelectorAll(".range-options input").forEach(input=>input.addEventListener("change",()=>{updateRangeLabel();syncDiscountInput();render()}));
+  $("range-clear").addEventListener("click",()=>{document.querySelectorAll(".range-options input").forEach(x=>x.checked=false);updateRangeLabel();syncDiscountInput();render()});
   buildDateOptions();
   document.querySelectorAll(".period-options input").forEach(input=>input.addEventListener("change",()=>{updatePeriodLabel();document.querySelectorAll("#date-checks input").forEach(d=>{if(!selectedMonths().includes(d.value.slice(0,7)))d.checked=false});updateDateLabel();syncDiscountInput();render()}));
   $("period-all").addEventListener("click",()=>{document.querySelectorAll(".period-options input").forEach(x=>x.checked=true);updatePeriodLabel();updateDateLabel();syncDiscountInput();render()});
@@ -94,8 +105,9 @@
   $("entry-date").value=new Date().toLocaleDateString("en-CA");
   $("entry-form").addEventListener("submit",ev=>{ev.preventDefault();const value=Number($("entry-value").value);const description=$("entry-description").value.trim();const date=$("entry-date").value;if(!date||!description||!Number.isFinite(value)||value<=0){alert("Preencha data, descrição e valor válido.");return}expenses.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),date,description,category:$("entry-category").value,value});saveExpenses();$("entry-form").reset();$("entry-date").value=new Date().toLocaleDateString("en-CA");render()});
   $("history-body").addEventListener("click",ev=>{const b=ev.target.closest("[data-delete]");if(!b)return;if(!confirm("Excluir esta despesa?"))return;expenses=expenses.filter(e=>e.id!==b.dataset.delete);saveExpenses();render()});
-  $("export-csv").addEventListener("click",()=>{const rows=[["Tipo","Data","Descrição","Categoria","Consumo (kWh)","Tarifa (R$/kWh)","Valor estimado (R$)"],...periodReadings().map(r=>["Consumo diário",r.date,"Leitura Cemig","Energia",r.kwh,rate,(r.kwh*rate).toFixed(2)]),...periodExpenses().map(e=>["Despesa adicional",e.date,e.description,e.category,"",rate,e.value.toFixed(2)])];const csv="\uFEFF"+rows.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="dre-cemig-"+(selectedMonth()||"historico").replaceAll("|","_")+".csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)});
+  $("export-csv").addEventListener("click",()=>{const rows=[["Tipo","Data","Descrição","Categoria","Consumo (kWh)","Tarifa (R$/kWh)","Valor estimado (R$)"],...periodReadings().map(r=>["Consumo diário",r.date,"Leitura Cemig","Energia",r.kwh,rate,(r.kwh*rate).toFixed(2)]),...periodExpenses().map(e=>["Despesa adicional",e.date,e.description,e.category,"",rate,e.value.toFixed(2)])];const csv="\uFEFF"+rows.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="dre-cemig-"+(rangeKey()||selectedMonth()||"historico").replaceAll("|","_")+".csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)});
   updatePeriodLabel();
+  updateRangeLabel();
   updateDateLabel();
   syncDiscountInput();
   render();

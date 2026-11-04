@@ -7,15 +7,15 @@
   <script src="src/dados-consumo.js" defer></script><script src="src/app.js" defer></script>
 </head>
 <body>
-<header class="topbar"><a class="brand" href="#"><span class="brand-mark">ϟ</span><span><b>Controle de Gastos</b><small>Cemig · DRE de energia</small></span></a><div class="top-actions"><span class="version">v1.1.2</span><button id="export-csv" class="secondary" type="button">Exportar CSV</button></div></header>
+<header class="topbar"><a class="brand" href="#"><span class="brand-mark">ϟ</span><span><b>Controle de Gastos</b><small>Cemig · DRE de energia</small></span></a><div class="top-actions"><span class="version">v1.1.3</span><button id="export-csv" class="secondary" type="button">Exportar CSV</button></div></header>
 <main class="container">
   <section class="hero"><div><p class="eyebrow">DEMONSTRATIVO DE RESULTADO ENERGÉTICO</p><h1>Consumo e despesas,<br><em>com visão financeira.</em></h1><p class="muted">Acompanhe a estimativa de custo, a evolução do consumo e os lançamentos adicionais.</p></div><div class="bolt">ϟ</div></section>
-  <section class="toolbar panel"><label>Período de análise<select id="filter-month"><option value="2026-11">Novembro 2026</option><option value="2026-10">Outubro 2026</option><option value="2026-09">Setembro 2026</option><option value="">Todo o histórico</option></select></label><label>Tarifa de energia (R$/kWh)<input id="rate-input" type="number" min="0" step="0.0001" value="1.1780"></label><button id="save-rate" class="primary" type="button">Aplicar tarifa</button><span id="rate-feedback" class="feedback" aria-live="polite">Tarifa-base: R$ 1,1780/kWh</span></section>
+  <section class="toolbar panel"><label>Período de análise<select id="filter-month"><option value="2026-11">Novembro 2026</option><option value="2026-10">Outubro 2026</option><option value="2026-09">Setembro 2026</option><option value="">Todo o histórico</option></select></label><label>Tarifa de energia (R$/kWh)<input id="rate-input" type="number" min="0" step="0.0001" value="1.1780"></label><button id="save-rate" class="primary" type="button">Aplicar tarifa</button><span id="rate-feedback" class="feedback" aria-live="polite">Tarifa-base: R$ 1,1780/kWh</span><div class="discount-control"><label for="discount-input">Desconto (R$)<input id="discount-input" type="number" min="0" step="0.01" placeholder="0,00" value="0.00"></label><button id="apply-discount" class="discount-button" type="button">Aplicar desconto</button><span id="discount-feedback" class="discount-feedback" aria-live="polite"></span></div></section>
   <section class="metrics">
     <article class="metric"><span>Consumo no período</span><strong id="total-consumption">0,00 kWh</strong><small id="days-count">0 dias com leitura</small></article>
     <article class="metric featured"><span>Custo estimado de energia</span><strong id="energy-cost">R$ 0,00</strong><small>Consumo × tarifa configurada</small></article>
     <article class="metric"><span>Despesas adicionais</span><strong id="other-expenses">R$ 0,00</strong><small>Registros manuais no período</small></article>
-    <article class="metric"><span>Total estimado do período</span><strong id="grand-total">R$ 0,00</strong><small>Energia estimada + despesas adicionais</small></article>
+    <article class="metric"><span>Total após desconto</span><strong id="grand-total">R$ 0,00</strong><small>Energia estimada + despesas adicionais</small></article>
   </section>
   <section class="grid-two">
     <article class="panel"><div class="section-heading"><div><p class="eyebrow">DRE DO PERÍODO</p><h2>Demonstrativo financeiro</h2></div><span class="tag">Estimativa</span></div>
@@ -23,7 +23,7 @@
         <div class="dre-row"><span>Consumo total apurado</span><b id="dre-kwh">0,00 kWh</b></div>
         <div class="dre-row"><span>(+) Custo estimado de energia</span><b id="dre-energy">R$ 0,00</b></div>
         <div class="dre-row"><span>(+) Despesas adicionais</span><b id="dre-other">R$ 0,00</b></div>
-        <div class="dre-row total"><span>Total de custos estimados</span><b id="dre-total">R$ 0,00</b></div>
+        <div class="dre-row discount-row"><span>(−) Desconto aplicado</span><b id="dre-discount">R$ 0,00</b></div><div class="dre-row total"><span>Total após desconto</span><b id="dre-total">R$ 0,00</b></div>
         <p class="note">Este demonstrativo considera os dados de consumo disponíveis e a tarifa informada. Não inclui impostos, bandeiras tarifárias, distribuição, demanda, iluminação pública ou outros componentes da fatura Cemig, salvo se adicionados manualmente.</p>
       </div>
     </article>
@@ -42,6 +42,6 @@
     <div id="empty-state" class="empty-state">Nenhuma despesa adicional neste período.</div><div class="table-footer"><span id="record-count">0 lançamentos</span><span>Registros manuais ficam salvos neste navegador.</span></div>
   </section>
   <section class="panel"><div class="section-heading"><div><p class="eyebrow">BASE DE CONSUMO</p><h2>Leituras importadas</h2></div><span class="tag">Set–Nov 2026</span></div><div class="table-wrap"><table><thead><tr><th>Data</th><th class="numeric">Consumo (kWh)</th><th class="numeric">Custo estimado</th></tr></thead><tbody id="readings-body"></tbody></table></div><div class="table-footer"><span id="reading-count">0 leituras</span><span>Valores zerados da base de novembro foram tratados como dados ainda indisponíveis.</span></div></section>
-  <footer>Controle de Gastos — Cemig <span>v1.1.2 · Estimativas calculadas pela tarifa configurada</span></footer>
+  <footer>Controle de Gastos — Cemig <span>v1.1.3 · Estimativas calculadas pela tarifa configurada</span></footer>
 </main>
 </body></html>

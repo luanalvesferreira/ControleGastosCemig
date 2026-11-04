@@ -12,7 +12,7 @@
   function loadDiscounts(){try{const x=JSON.parse(localStorage.getItem(DISCOUNT_KEY)||"{}");return x&&typeof x==="object"?x:{}}catch{return {}}}
   function saveDiscounts(){localStorage.setItem(DISCOUNT_KEY,JSON.stringify(discounts))}
   function currentDiscount(){return Number(discounts[periodKey()]||0)}
-  function syncDiscountInput(){$("discount-input").value=currentDiscount().toFixed(2);$("discount-feedback").textContent=currentDiscount()>0?"Desconto salvo para este período":""}
+  function syncDiscountInput(){$("discount-input").value=currentDiscount().toFixed(2)}
   function loadExpenses(){try{const x=JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");return Array.isArray(x)?x:[]}catch{return []}}
   function loadRate(){const n=Number(localStorage.getItem(RATE_KEY));return Number.isFinite(n)&&n>=0?n:(window.CEMIG_BASE?.rateDefault||1.1780)}
   function saveExpenses(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(expenses))}catch{alert("Não foi possível salvar no navegador. Exporte seus dados para backup.")}}
@@ -22,13 +22,18 @@
   function selectedMonth(){const m=selectedMonths();return m.length===1?m[0]:m.length===3?"":m.join(",")}
   function periodKey(){const m=selectedMonths();return m.length===3?"all":m.length?m.sort().join("|"):"none"}
   function updatePeriodLabel(){const m=selectedMonths();$("period-summary").textContent=m.length===0?"Nenhum mês":m.length===3?"Todo o histórico":m.length===1?monthNames[m[0]]:m.length+" meses selecionados"}
-  function inPeriod(date){const m=selectedMonths();return m.includes(date.slice(0,7))}
+  function selectedDates(){return [...document.querySelectorAll("#date-checks input:checked")].map(x=>x.value)}
+  function dateFilterActive(){return selectedDates().length>0}
+  function inPeriod(date){const m=selectedMonths();return m.includes(date.slice(0,7))&&(!dateFilterActive()||selectedDates().includes(date))}
   function periodReadings(){return readings.filter(r=>inPeriod(r.date))}
   function periodExpenses(){return expenses.filter(e=>inPeriod(e.date)).sort((a,b)=>b.date.localeCompare(a.date))}
+  function buildDateOptions(){const dates=[...new Set(readings.map(r=>r.date))].sort();$("date-checks").innerHTML=dates.map(d=>'<label><input type="checkbox" value="'+d+'"> '+fmtDate(d)+'</label>').join("");$("date-checks").querySelectorAll("input").forEach(x=>x.addEventListener("change",()=>{updateDateLabel();render()}))}
+  function updateDateLabel(){const n=selectedDates().length;const total=readings.filter(r=>selectedMonths().includes(r.date.slice(0,7))).length;$("date-summary").textContent=n===0?"Todas as datas":n===total?"Todos os dias":n+" dias selecionados"}
+  function setDateChecks(checked){$("date-checks").querySelectorAll("input").forEach(x=>{x.checked=checked&&selectedMonths().includes(x.value.slice(0,7))});updateDateLabel();render()}
   function sum(arr,fn){return arr.reduce((acc,x)=>acc+fn(x),0)}
   function renderMonthly(){
     const months=["2026-09","2026-10","2026-11"];
-    const totals=months.map(m=>({month:m,kwh:sum(readings.filter(r=>r.date.startsWith(m)),r=>r.kwh)}));
+    const totals=months.map(m=>({month:m,kwh:sum(periodReadings().filter(r=>r.date.startsWith(m)),r=>r.kwh)}));
     const max=Math.max(1,...totals.map(x=>x.kwh*rate));
     $("monthly-chart").innerHTML=totals.map(x=>{const cost=x.kwh*rate;return `<div class="bar-item"><div class="bar-value">${currency.format(cost)}</div><div class="bar-track"><div class="bar-fill ${selectedMonths().includes(x.month)?"selected":""}" style="height:${Math.max(3,cost/max*100)}%" title="${number.format(x.kwh)} kWh"></div></div><div class="bar-label">${monthNames[x.month].split(" ")[0]}</div></div>`}).join("");
     $("monthly-summary").innerHTML=totals.map(x=>`<div><span>${monthNames[x.month]}</span><b>${number.format(x.kwh)} kWh</b></div>`).join("");
@@ -51,10 +56,10 @@
   }
   function render(){
     const r=periodReadings(), e=periodExpenses();
-    const kwh=sum(r,x=>x.kwh), energy=kwh*rate, other=sum(e,x=>x.value), gross=energy+other, discount=currentDiscount(), total=gross-discount;
+    const kwh=sum(r,x=>x.kwh), energy=kwh*rate, other=sum(e,x=>x.value), discount=Math.min(currentDiscount(),energy), netEnergy=energy-discount, total=netEnergy+other;
     $("total-consumption").textContent=number.format(kwh)+" kWh";
     $("days-count").textContent=r.length+" dias com leitura";
-    $("energy-cost").textContent=currency.format(energy);
+    $("energy-cost").textContent=currency.format(netEnergy);
     $("other-expenses").textContent=currency.format(other);
     $("grand-total").textContent=currency.format(total);
     $("dre-discount").textContent="− "+currency.format(discount);
@@ -69,14 +74,18 @@
   }
   $("rate-input").value=rate.toFixed(4);
   $("save-rate").addEventListener("click",()=>{const next=Number($("rate-input").value);if(!Number.isFinite(next)||next<0){alert("Informe uma tarifa válida.");return}rate=next;localStorage.setItem(RATE_KEY,String(rate));$("rate-feedback").textContent="Tarifa aplicada: "+currency.format(rate)+"/kWh";render()});
-  document.querySelectorAll(".period-options input").forEach(input=>input.addEventListener("change",()=>{updatePeriodLabel();syncDiscountInput();render()}));
-  $("period-all").addEventListener("click",()=>{document.querySelectorAll(".period-options input").forEach(x=>x.checked=true);updatePeriodLabel();syncDiscountInput();render()});
-  $("apply-discount").addEventListener("click",()=>{const value=Number($("discount-input").value);const r=periodReadings(),e=periodExpenses();const gross=sum(r,x=>x.kwh*rate)+sum(e,x=>x.value);if(!Number.isFinite(value)||value<0){alert("Informe um desconto válido em reais.");return}if(value>gross){alert("O desconto não pode ser maior que o total de custos do período ("+currency.format(gross)+").");return}discounts[periodKey()]=value;saveDiscounts();$("discount-feedback").textContent=value>0?"Desconto aplicado: "+currency.format(value):"Desconto removido";render()});
+  buildDateOptions();
+  document.querySelectorAll(".period-options input").forEach(input=>input.addEventListener("change",()=>{updatePeriodLabel();document.querySelectorAll("#date-checks input").forEach(d=>{if(!selectedMonths().includes(d.value.slice(0,7)))d.checked=false});updateDateLabel();syncDiscountInput();render()}));
+  $("period-all").addEventListener("click",()=>{document.querySelectorAll(".period-options input").forEach(x=>x.checked=true);updatePeriodLabel();updateDateLabel();syncDiscountInput();render()});
+  $("date-all").addEventListener("click",()=>setDateChecks(true));
+  $("date-clear").addEventListener("click",()=>setDateChecks(false));
+  $("apply-discount").addEventListener("click",()=>{const value=Number($("discount-input").value);const r=periodReadings(),e=periodExpenses();const gross=sum(r,x=>x.kwh*rate)+sum(e,x=>x.value);if(!Number.isFinite(value)||value<0){alert("Informe um desconto válido em reais.");return}if(value>gross){alert("O desconto não pode ser maior que o total de custos do período ("+currency.format(gross)+").");return}discounts[periodKey()]=value;saveDiscounts();render()});
   $("entry-date").value=new Date().toLocaleDateString("en-CA");
   $("entry-form").addEventListener("submit",ev=>{ev.preventDefault();const value=Number($("entry-value").value);const description=$("entry-description").value.trim();const date=$("entry-date").value;if(!date||!description||!Number.isFinite(value)||value<=0){alert("Preencha data, descrição e valor válido.");return}expenses.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),date,description,category:$("entry-category").value,value});saveExpenses();$("entry-form").reset();$("entry-date").value=new Date().toLocaleDateString("en-CA");render()});
   $("history-body").addEventListener("click",ev=>{const b=ev.target.closest("[data-delete]");if(!b)return;if(!confirm("Excluir esta despesa?"))return;expenses=expenses.filter(e=>e.id!==b.dataset.delete);saveExpenses();render()});
   $("export-csv").addEventListener("click",()=>{const rows=[["Tipo","Data","Descrição","Categoria","Consumo (kWh)","Tarifa (R$/kWh)","Valor estimado (R$)"],...periodReadings().map(r=>["Consumo diário",r.date,"Leitura Cemig","Energia",r.kwh,rate,(r.kwh*rate).toFixed(2)]),...periodExpenses().map(e=>["Despesa adicional",e.date,e.description,e.category,"",rate,e.value.toFixed(2)])];const csv="\uFEFF"+rows.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="dre-cemig-"+(selectedMonth()||"historico").replaceAll("|","_")+".csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)});
   updatePeriodLabel();
+  updateDateLabel();
   syncDiscountInput();
   render();
 })();

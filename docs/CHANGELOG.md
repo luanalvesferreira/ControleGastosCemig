@@ -1,5 +1,11 @@
 # Histórico de versões
 
+## [1.1.1] — 04/11/2026
+- Aumenta o tamanho dos valores de kWh e das barras no gráfico diário.
+- Adiciona card flutuante ao passar o mouse ou focar o dia, com data, consumo, custo estimado e comparação com o dia anterior.
+- Destaca em amarelo os dias cujo consumo supera o do dia imediatamente anterior.
+
+
 ## [1.1.0] — 04/11/2026
 - Evolução para painel DRE de energia com paleta verde.
 - Tarifa padrão configurada em R$ 1,1780/kWh e editável no painel.

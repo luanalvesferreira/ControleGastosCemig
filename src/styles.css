@@ -79,3 +79,9 @@
 .clear-all-filters{height:40px;padding:0 12px;border-radius:9px;font-size:11px;font-weight:800;white-space:nowrap;flex:0 0 auto}
 @media(max-width:1050px){.clear-all-filters{flex:1 1 100%;width:100%}}
 @media(max-width:600px){.clear-all-filters{grid-column:1/-1}}
+
+/* v1.1.16 — ação compacta para remover o desconto */
+.clear-discount{width:34px;height:40px;min-width:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:1px solid #e5d8b9;border-radius:9px;background:#fffaf0;color:#9a741f;cursor:pointer;flex:0 0 34px}
+.clear-discount:hover{background:#ffefcf;color:#805d0d}
+.clear-discount svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:600px){.clear-discount{width:34px;min-width:34px;flex:0 0 34px}}

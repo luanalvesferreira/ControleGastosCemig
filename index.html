@@ -1,53 +1,47 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b6b53">
-  <meta name="description" content="Controle local de gastos e consumo de energia Cemig.">
-  <title>Controle de Gastos — Cemig</title>
-  <link rel="stylesheet" href="src/styles.css">
-  <script src="src/app.js" defer></script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#075c46"><meta name="description" content="DRE e controle de despesas de energia Cemig.">
+  <title>DRE de Energia — Cemig</title><link rel="stylesheet" href="src/styles.css">
+  <script src="src/dados-consumo.js" defer></script><script src="src/app.js" defer></script>
 </head>
 <body>
-<header class="topbar">
-  <a class="brand" href="#"><span class="brand-mark">ϟ</span><span><b>Controle de Gastos</b><small>Cemig · Energia residencial</small></span></a>
-  <span class="version">v1.0.0</span>
-</header>
+<header class="topbar"><a class="brand" href="#"><span class="brand-mark">ϟ</span><span><b>Controle de Gastos</b><small>Cemig · DRE de energia</small></span></a><div class="top-actions"><span class="version">v1.1.0</span><button id="export-csv" class="secondary" type="button">Exportar CSV</button></div></header>
 <main class="container">
-  <section class="hero">
-    <div><p class="eyebrow">PAINEL DE CONTROLE</p><h1>Suas despesas de energia,<br><em>sob controle.</em></h1><p class="muted">Registre gastos, acompanhe o consumo e mantenha seu histórico em um só lugar.</p></div>
-    <div class="bolt" aria-hidden="true">ϟ</div>
-  </section>
+  <section class="hero"><div><p class="eyebrow">DEMONSTRATIVO DE RESULTADO ENERGÉTICO</p><h1>Consumo e despesas,<br><em>com visão financeira.</em></h1><p class="muted">Acompanhe a estimativa de custo, a evolução do consumo e os lançamentos adicionais.</p></div><div class="bolt">ϟ</div></section>
+  <section class="toolbar panel"><label>Período de análise<select id="filter-month"><option value="2026-11">Novembro 2026</option><option value="2026-10">Outubro 2026</option><option value="2026-09">Setembro 2026</option><option value="">Todo o histórico</option></select></label><label>Tarifa de energia (R$/kWh)<input id="rate-input" type="number" min="0" step="0.0001" value="1.1780"></label><button id="save-rate" class="primary" type="button">Aplicar tarifa</button><span id="rate-feedback" class="feedback" aria-live="polite">Tarifa-base: R$ 1,1780/kWh</span></section>
   <section class="metrics">
-    <article class="metric"><span>Total de despesas</span><strong id="total-expenses">R$ 0,00</strong><small id="expense-period">Todos os lançamentos</small></article>
-    <article class="metric"><span>Consumo registrado</span><strong id="total-consumption">0,00 kWh</strong><small>Somatório dos registros filtrados</small></article>
-    <article class="metric"><span>Média diária</span><strong id="daily-average">0,00 kWh</strong><small>Nos dias com consumo informado</small></article>
+    <article class="metric"><span>Consumo no período</span><strong id="total-consumption">0,00 kWh</strong><small id="days-count">0 dias com leitura</small></article>
+    <article class="metric featured"><span>Custo estimado de energia</span><strong id="energy-cost">R$ 0,00</strong><small>Consumo × tarifa configurada</small></article>
+    <article class="metric"><span>Despesas adicionais</span><strong id="other-expenses">R$ 0,00</strong><small>Registros manuais no período</small></article>
+    <article class="metric"><span>Total estimado do período</span><strong id="grand-total">R$ 0,00</strong><small>Energia estimada + despesas adicionais</small></article>
   </section>
-  <section class="panel">
-    <div class="section-heading"><div><p class="eyebrow">NOVO REGISTRO</p><h2>Adicionar lançamento</h2></div></div>
+  <section class="grid-two">
+    <article class="panel"><div class="section-heading"><div><p class="eyebrow">DRE DO PERÍODO</p><h2>Demonstrativo financeiro</h2></div><span class="tag">Estimativa</span></div>
+      <div class="dre-table">
+        <div class="dre-row"><span>Consumo total apurado</span><b id="dre-kwh">0,00 kWh</b></div>
+        <div class="dre-row"><span>(+) Custo estimado de energia</span><b id="dre-energy">R$ 0,00</b></div>
+        <div class="dre-row"><span>(+) Despesas adicionais</span><b id="dre-other">R$ 0,00</b></div>
+        <div class="dre-row total"><span>Total de custos estimados</span><b id="dre-total">R$ 0,00</b></div>
+        <p class="note">Este demonstrativo considera os dados de consumo disponíveis e a tarifa informada. Não inclui impostos, bandeiras tarifárias, distribuição, demanda, iluminação pública ou outros componentes da fatura Cemig, salvo se adicionados manualmente.</p>
+      </div>
+    </article>
+    <article class="panel"><div class="section-heading"><div><p class="eyebrow">COMPARATIVO</p><h2>Custo por mês</h2></div></div><div id="monthly-chart" class="bar-chart" aria-label="Gráfico comparativo de custo mensal"></div><div id="monthly-summary" class="monthly-summary"></div></article>
+  </section>
+  <section class="panel"><div class="section-heading"><div><p class="eyebrow">CONSUMO DIÁRIO</p><h2>Perfil de consumo no período</h2></div><span id="chart-caption" class="muted small"></span></div><div id="daily-chart" class="daily-chart"></div></section>
+  <section class="panel"><div class="history-heading"><div><p class="eyebrow">LANÇAMENTOS MANUAIS</p><h2>Despesas adicionais</h2></div></div>
     <form id="entry-form" class="entry-form">
       <label>Data<input id="entry-date" type="date" required></label>
-      <label class="wide">Descrição<input id="entry-description" type="text" placeholder="Ex.: Conta Cemig de outubro" maxlength="100" required></label>
-      <label>Categoria<select id="entry-category"><option>Conta de energia</option><option>Consumo diário</option><option>Taxas e ajustes</option><option>Outros</option></select></label>
-      <label>Valor (R$)<input id="entry-value" type="number" min="0" step="0.01" placeholder="0,00"></label>
-      <label>Consumo (kWh)<input id="entry-kwh" type="number" min="0" step="0.01" placeholder="0,00"></label>
-      <button class="primary" type="submit">＋ Adicionar</button>
+      <label class="wide">Descrição<input id="entry-description" type="text" maxlength="100" placeholder="Ex.: manutenção elétrica" required></label>
+      <label>Categoria<select id="entry-category"><option>Taxas e ajustes</option><option>Manutenção</option><option>Equipamentos</option><option>Outros</option></select></label>
+      <label>Valor (R$)<input id="entry-value" type="number" min="0.01" step="0.01" placeholder="0,00" required></label>
+      <button class="primary" type="submit">＋ Adicionar despesa</button>
     </form>
-    <p class="form-note">Informe o valor, o consumo ou ambos. Despesas e leituras podem ser registradas separadamente.</p>
+    <div class="table-wrap"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th class="numeric">Valor</th><th></th></tr></thead><tbody id="history-body"></tbody></table></div>
+    <div id="empty-state" class="empty-state">Nenhuma despesa adicional neste período.</div><div class="table-footer"><span id="record-count">0 lançamentos</span><span>Registros manuais ficam salvos neste navegador.</span></div>
   </section>
-  <section class="panel">
-    <div class="history-heading"><div><p class="eyebrow">ACOMPANHAMENTO</p><h2>Histórico de lançamentos</h2></div><button id="export-csv" class="secondary" type="button">Exportar CSV</button></div>
-    <div class="filters">
-      <label>Mês<input id="filter-month" type="month"></label>
-      <label>Categoria<select id="filter-category"><option value="">Todas as categorias</option><option>Conta de energia</option><option>Consumo diário</option><option>Taxas e ajustes</option><option>Outros</option></select></label>
-      <button id="clear-filters" class="text-button" type="button">Limpar filtros</button>
-    </div>
-    <div class="table-wrap"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th class="numeric">Consumo</th><th class="numeric">Valor</th><th></th></tr></thead><tbody id="history-body"></tbody></table></div>
-    <div id="empty-state" class="empty-state">Nenhum lançamento encontrado. Adicione seu primeiro registro acima.</div>
-    <div class="table-footer"><span id="record-count">0 registros</span><span>Dados salvos neste navegador.</span></div>
-  </section>
-  <footer>Controle de Gastos — Cemig <span>v1.0.0 · Armazenamento local</span></footer>
+  <section class="panel"><div class="section-heading"><div><p class="eyebrow">BASE DE CONSUMO</p><h2>Leituras importadas</h2></div><span class="tag">Set–Nov 2026</span></div><div class="table-wrap"><table><thead><tr><th>Data</th><th class="numeric">Consumo (kWh)</th><th class="numeric">Custo estimado</th></tr></thead><tbody id="readings-body"></tbody></table></div><div class="table-footer"><span id="reading-count">0 leituras</span><span>Valores zerados da base de novembro foram tratados como dados ainda indisponíveis.</span></div></section>
+  <footer>Controle de Gastos — Cemig <span>v1.1.0 · Estimativas calculadas pela tarifa configurada</span></footer>
 </main>
-</body>
-</html>
+</body></html>

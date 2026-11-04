@@ -1,32 +1,35 @@
 # Controle de Gastos — Cemig
 
-Aplicação web para registrar despesas de energia, acompanhar consumo diário em kWh e consultar o histórico.
+Painel de DRE/controle financeiro de energia com paleta verde, consumo diário e estimativa de custo.
 
-## v1.0.0 — 04/11/2026
-
-- Dashboard com indicadores de despesas, consumo e média diária.
-- Cadastro de conta de energia, consumo diário, taxas e outros lançamentos.
-- Filtros por mês e categoria.
-- Histórico com exclusão de lançamentos.
-- Exportação CSV para Excel.
-- Persistência local via localStorage.
-- Script de extração do gráfico do Cemig Atende em JavaScript.
+## Versão 1.1.0 — 04/11/2026
+- Tarifa padrão: **R$ 1,1780/kWh**, editável no painel.
+- Bases diárias consolidadas de setembro, outubro e novembro de 2026 em `src/dados-consumo.js`.
+- Indicadores de consumo, custo estimado, despesas adicionais e custo total.
+- DRE do período, comparação de custo mensal e gráfico diário.
+- Cadastro de despesas adicionais, filtros e exportação CSV.
+- Extrator de consumo Cemig em `extracao-cemig.js`.
 
 ## Executar
-Abra `index.html` em um navegador moderno. Não exige instalação nem servidor.
+Abra `index.html` em um navegador moderno. Não exige instalação ou servidor.
 
-Os registros ficam armazenados no navegador/dispositivo atual. Use a exportação CSV para manter cópias de segurança.
+Despesas adicionais e tarifa ficam no armazenamento local do navegador. As leituras-base ficam versionadas no código. Use Exportar CSV para guardar os dados filtrados.
 
-## Extrair consumo do Cemig Atende
-Consulte `extracao-cemig.js`. Selecione o mês no portal e aguarde o gráfico atualizar antes de executar o script no Console do navegador (F12). O script confere mês e quantidade de dias e copia os dados em TSV.
+## Como o cálculo funciona
+`Custo estimado de energia = kWh apurados × tarifa configurada`.
+`Total estimado = custo de energia + despesas adicionais`.
 
-Valores zero podem representar dados ainda indisponíveis no portal. Confira antes de considerar como consumo real.
+Este cálculo é uma estimativa e não reproduz necessariamente o valor final da fatura Cemig, que pode conter impostos, bandeiras tarifárias, distribuição, iluminação pública e outros componentes.
+
+## Observação sobre novembro
+As linhas com consumo zero na planilha de novembro foram interpretadas como dias sem leitura disponível e não são incluídas no total, para evitar subestimar o consumo. A base disponível contabiliza leituras de 1 a 3 de novembro.
 
 ## Estrutura
 ```
 index.html
 extracao-cemig.js
 src/app.js
+src/dados-consumo.js
 src/styles.css
 docs/CHANGELOG.md
 ```

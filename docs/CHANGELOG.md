@@ -1,5 +1,11 @@
 # Histórico de versões
 
+## [1.1.3] — 04/11/2026
+- Adiciona campo de desconto em reais ao lado dos filtros de período e tarifa.
+- Permite aplicar desconto por período selecionado, com persistência local no navegador.
+- Exibe o desconto como dedução no DRE e calcula o total líquido após desconto.
+
+
 ## [1.1.2] — 04/11/2026
 - Aumenta o card de detalhes do gráfico diário e fixa sua posição na tela para evitar recorte pela área rolável do gráfico.
 

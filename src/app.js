@@ -36,7 +36,14 @@
   }
   function periodReadings(){return readings.filter(r=>inPeriod(r.date))}
   function periodExpenses(){return expenses.filter(e=>inPeriod(e.date)).sort((a,b)=>b.date.localeCompare(a.date))}
-  function buildDateOptions(){const dates=[...new Set(readings.map(r=>r.date))].sort();$("date-checks").innerHTML=dates.map(d=>'<label><input type="checkbox" value="'+d+'"> '+fmtDate(d)+'</label>').join("");$("date-checks").querySelectorAll("input").forEach(x=>x.addEventListener("change",()=>{updateDateLabel();render()}))}
+  function buildDateOptions(){
+    const dates=[...new Set(readings.map(r=>r.date))].sort();
+    const months=selectedMonths();
+    const visible=dates.filter(d=>months.includes(d.slice(0,7)));
+    const previously=selectedDates();
+    $("date-checks").innerHTML=visible.map(d=>'<label><input type="checkbox" value="'+d+'" '+(previously.includes(d)?"checked":"")+'> '+fmtDate(d)+'</label>').join("");
+    $("date-checks").querySelectorAll("input").forEach(x=>x.addEventListener("change",()=>{updateDateLabel();render()}));
+  }
   function updateDateLabel(){const n=selectedDates().length;const total=readings.filter(r=>selectedMonths().includes(r.date.slice(0,7))).length;$("date-summary").textContent=n===0?"Todas as datas":n===total?"Todos os dias":n+" dias selecionados"}
   function setDateChecks(checked){$("date-checks").querySelectorAll("input").forEach(x=>{x.checked=checked&&selectedMonths().includes(x.value.slice(0,7))});updateDateLabel();render()}
   function sum(arr,fn){return arr.reduce((acc,x)=>acc+fn(x),0)}
@@ -97,8 +104,8 @@
   document.querySelectorAll(".range-options input").forEach(input=>input.addEventListener("change",()=>{updateRangeLabel();syncDiscountInput();render()}));
   $("range-clear").addEventListener("click",()=>{document.querySelectorAll(".range-options input").forEach(x=>x.checked=false);updateRangeLabel();syncDiscountInput();render()});
   buildDateOptions();
-  document.querySelectorAll(".period-options input").forEach(input=>input.addEventListener("change",()=>{updatePeriodLabel();document.querySelectorAll("#date-checks input").forEach(d=>{if(!selectedMonths().includes(d.value.slice(0,7)))d.checked=false});updateDateLabel();syncDiscountInput();render()}));
-  $("period-all").addEventListener("click",()=>{document.querySelectorAll(".period-options input").forEach(x=>x.checked=true);updatePeriodLabel();updateDateLabel();syncDiscountInput();render()});
+  document.querySelectorAll(".period-options input").forEach(input=>input.addEventListener("change",()=>{updatePeriodLabel();buildDateOptions();updateDateLabel();syncDiscountInput();render()}));
+  $("period-all").addEventListener("click",()=>{document.querySelectorAll(".period-options input").forEach(x=>x.checked=true);updatePeriodLabel();buildDateOptions();updateDateLabel();syncDiscountInput();render()});
   $("date-all").addEventListener("click",()=>setDateChecks(true));
   $("date-clear").addEventListener("click",()=>setDateChecks(false));
   $("apply-discount").addEventListener("click",()=>{const value=Number($("discount-input").value);const r=periodReadings(),e=periodExpenses();const gross=sum(r,x=>x.kwh*rate)+sum(e,x=>x.value);if(!Number.isFinite(value)||value<0){alert("Informe um desconto válido em reais.");return}if(value>gross){alert("O desconto não pode ser maior que o total de custos do período ("+currency.format(gross)+").");return}discounts[periodKey()]=value;saveDiscounts();render()});

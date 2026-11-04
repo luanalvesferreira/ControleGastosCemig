@@ -1,4 +1,4 @@
-# Histórico de versões
+## [1.1.10] — 04/11/2026\n- Ajusta a distribuição de larguras dos filtros em telas largas para manter o botão “Aplicar desconto” dentro do painel.\n- Permite que o campo de desconto reduza sua largura de forma controlada sem cortar o botão.\n\n# Histórico de versões
 
 ## [1.1.9] — 04/11/2026
 - Sincroniza os filtros de mês e dias: a lista de dias exibe somente datas dos meses selecionados.

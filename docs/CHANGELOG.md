@@ -1,5 +1,10 @@
 # Histórico de versões
 
+## [1.1.4] — 04/11/2026
+- Reorganiza os controles de período, tarifa e desconto em uma única linha em telas largas.
+- Ajusta larguras e tipografia da tarifa-base; em telas menores, os controles se reorganizam sem sobreposição.
+
+
 ## [1.1.3] — 04/11/2026
 - Adiciona campo de desconto em reais ao lado dos filtros de período e tarifa.
 - Permite aplicar desconto por período selecionado, com persistência local no navegador.

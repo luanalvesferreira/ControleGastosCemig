@@ -1,5 +1,10 @@
 # Histórico de versões
 
+## [1.1.7] — 04/11/2026
+- Fecha os menus de período e dias ao clicar fora deles.
+- Mantém o menu aberto durante cliques nas opções e permite fechar com Esc.
+
+
 ## [1.1.6] — 04/11/2026
 - Remove a mensagem de status do desconto abaixo do campo.
 - Corrige os menus de seleção para não serem cortados pelo contêiner de filtros.

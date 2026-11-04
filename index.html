@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b6b53">
+  <meta name="description" content="Controle local de gastos e consumo de energia Cemig.">
+  <title>Controle de Gastos — Cemig</title>
+  <link rel="stylesheet" href="src/styles.css">
+  <script src="src/app.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="#"><span class="brand-mark">ϟ</span><span><b>Controle de Gastos</b><small>Cemig · Energia residencial</small></span></a>
+  <span class="version">v1.0.0</span>
+</header>
+<main class="container">
+  <section class="hero">
+    <div><p class="eyebrow">PAINEL DE CONTROLE</p><h1>Suas despesas de energia,<br><em>sob controle.</em></h1><p class="muted">Registre gastos, acompanhe o consumo e mantenha seu histórico em um só lugar.</p></div>
+    <div class="bolt" aria-hidden="true">ϟ</div>
+  </section>
+  <section class="metrics">
+    <article class="metric"><span>Total de despesas</span><strong id="total-expenses">R$ 0,00</strong><small id="expense-period">Todos os lançamentos</small></article>
+    <article class="metric"><span>Consumo registrado</span><strong id="total-consumption">0,00 kWh</strong><small>Somatório dos registros filtrados</small></article>
+    <article class="metric"><span>Média diária</span><strong id="daily-average">0,00 kWh</strong><small>Nos dias com consumo informado</small></article>
+  </section>
+  <section class="panel">
+    <div class="section-heading"><div><p class="eyebrow">NOVO REGISTRO</p><h2>Adicionar lançamento</h2></div></div>
+    <form id="entry-form" class="entry-form">
+      <label>Data<input id="entry-date" type="date" required></label>
+      <label class="wide">Descrição<input id="entry-description" type="text" placeholder="Ex.: Conta Cemig de outubro" maxlength="100" required></label>
+      <label>Categoria<select id="entry-category"><option>Conta de energia</option><option>Consumo diário</option><option>Taxas e ajustes</option><option>Outros</option></select></label>
+      <label>Valor (R$)<input id="entry-value" type="number" min="0" step="0.01" placeholder="0,00"></label>
+      <label>Consumo (kWh)<input id="entry-kwh" type="number" min="0" step="0.01" placeholder="0,00"></label>
+      <button class="primary" type="submit">＋ Adicionar</button>
+    </form>
+    <p class="form-note">Informe o valor, o consumo ou ambos. Despesas e leituras podem ser registradas separadamente.</p>
+  </section>
+  <section class="panel">
+    <div class="history-heading"><div><p class="eyebrow">ACOMPANHAMENTO</p><h2>Histórico de lançamentos</h2></div><button id="export-csv" class="secondary" type="button">Exportar CSV</button></div>
+    <div class="filters">
+      <label>Mês<input id="filter-month" type="month"></label>
+      <label>Categoria<select id="filter-category"><option value="">Todas as categorias</option><option>Conta de energia</option><option>Consumo diário</option><option>Taxas e ajustes</option><option>Outros</option></select></label>
+      <button id="clear-filters" class="text-button" type="button">Limpar filtros</button>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th class="numeric">Consumo</th><th class="numeric">Valor</th><th></th></tr></thead><tbody id="history-body"></tbody></table></div>
+    <div id="empty-state" class="empty-state">Nenhum lançamento encontrado. Adicione seu primeiro registro acima.</div>
+    <div class="table-footer"><span id="record-count">0 registros</span><span>Dados salvos neste navegador.</span></div>
+  </section>
+  <footer>Controle de Gastos — Cemig <span>v1.0.0 · Armazenamento local</span></footer>
+</main>
+</body>
+</html>

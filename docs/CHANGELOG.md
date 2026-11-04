@@ -1,3 +1,6 @@
+## [1.1.11] — 04/11/2026
+- Exibe o dia da semana logo abaixo da data no card de detalhes do consumo diário.
+
 ## [1.1.10] — 04/11/2026\n- Ajusta a distribuição de larguras dos filtros em telas largas para manter o botão “Aplicar desconto” dentro do painel.\n- Permite que o campo de desconto reduza sua largura de forma controlada sem cortar o botão.\n\n# Histórico de versões
 
 ## [1.1.9] — 04/11/2026

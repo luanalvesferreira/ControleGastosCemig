@@ -1,5 +1,11 @@
 # Histórico de versões
 
+## [1.1.5] — 04/11/2026
+- Permite selecionar um ou vários meses no período de análise, inclusive todo o histórico.
+- Mantém os controles financeiros em uma única linha; em telas estreitas, a faixa permite rolagem horizontal sem quebrar os campos.
+- Ajusta o desconto para ser armazenado por combinação de meses selecionados.
+
+
 ## [1.1.4] — 04/11/2026
 - Reorganiza os controles de período, tarifa e desconto em uma única linha em telas largas.
 - Ajusta larguras e tipografia da tarifa-base; em telas menores, os controles se reorganizam sem sobreposição.

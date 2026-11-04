@@ -11,15 +11,18 @@
   let discounts=loadDiscounts();
   function loadDiscounts(){try{const x=JSON.parse(localStorage.getItem(DISCOUNT_KEY)||"{}");return x&&typeof x==="object"?x:{}}catch{return {}}}
   function saveDiscounts(){localStorage.setItem(DISCOUNT_KEY,JSON.stringify(discounts))}
-  function currentDiscount(){return Number(discounts[selectedMonth()||"all"]||0)}
+  function currentDiscount(){return Number(discounts[periodKey()]||0)}
   function syncDiscountInput(){$("discount-input").value=currentDiscount().toFixed(2);$("discount-feedback").textContent=currentDiscount()>0?"Desconto salvo para este período":""}
   function loadExpenses(){try{const x=JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");return Array.isArray(x)?x:[]}catch{return []}}
   function loadRate(){const n=Number(localStorage.getItem(RATE_KEY));return Number.isFinite(n)&&n>=0?n:(window.CEMIG_BASE?.rateDefault||1.1780)}
   function saveExpenses(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(expenses))}catch{alert("Não foi possível salvar no navegador. Exporte seus dados para backup.")}}
   function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
   function fmtDate(s){return s.split("-").reverse().join("/")}
-  function selectedMonth(){return $("filter-month").value}
-  function inPeriod(date){return !selectedMonth()||date.startsWith(selectedMonth())}
+  function selectedMonths(){return [...document.querySelectorAll(".period-options input:checked")].map(x=>x.value)}
+  function selectedMonth(){const m=selectedMonths();return m.length===1?m[0]:m.length===3?"":m.join(",")}
+  function periodKey(){const m=selectedMonths();return m.length===3?"all":m.length?m.sort().join("|"):"none"}
+  function updatePeriodLabel(){const m=selectedMonths();$("period-summary").textContent=m.length===0?"Nenhum mês":m.length===3?"Todo o histórico":m.length===1?monthNames[m[0]]:m.length+" meses selecionados"}
+  function inPeriod(date){const m=selectedMonths();return m.includes(date.slice(0,7))}
   function periodReadings(){return readings.filter(r=>inPeriod(r.date))}
   function periodExpenses(){return expenses.filter(e=>inPeriod(e.date)).sort((a,b)=>b.date.localeCompare(a.date))}
   function sum(arr,fn){return arr.reduce((acc,x)=>acc+fn(x),0)}
@@ -27,7 +30,7 @@
     const months=["2026-09","2026-10","2026-11"];
     const totals=months.map(m=>({month:m,kwh:sum(readings.filter(r=>r.date.startsWith(m)),r=>r.kwh)}));
     const max=Math.max(1,...totals.map(x=>x.kwh*rate));
-    $("monthly-chart").innerHTML=totals.map(x=>{const cost=x.kwh*rate;return `<div class="bar-item"><div class="bar-value">${currency.format(cost)}</div><div class="bar-track"><div class="bar-fill ${x.month===selectedMonth()?"selected":""}" style="height:${Math.max(3,cost/max*100)}%" title="${number.format(x.kwh)} kWh"></div></div><div class="bar-label">${monthNames[x.month].split(" ")[0]}</div></div>`}).join("");
+    $("monthly-chart").innerHTML=totals.map(x=>{const cost=x.kwh*rate;return `<div class="bar-item"><div class="bar-value">${currency.format(cost)}</div><div class="bar-track"><div class="bar-fill ${selectedMonths().includes(x.month)?"selected":""}" style="height:${Math.max(3,cost/max*100)}%" title="${number.format(x.kwh)} kWh"></div></div><div class="bar-label">${monthNames[x.month].split(" ")[0]}</div></div>`}).join("");
     $("monthly-summary").innerHTML=totals.map(x=>`<div><span>${monthNames[x.month]}</span><b>${number.format(x.kwh)} kWh</b></div>`).join("");
   }
   function renderDaily(data){
@@ -66,12 +69,14 @@
   }
   $("rate-input").value=rate.toFixed(4);
   $("save-rate").addEventListener("click",()=>{const next=Number($("rate-input").value);if(!Number.isFinite(next)||next<0){alert("Informe uma tarifa válida.");return}rate=next;localStorage.setItem(RATE_KEY,String(rate));$("rate-feedback").textContent="Tarifa aplicada: "+currency.format(rate)+"/kWh";render()});
-  $("filter-month").addEventListener("change",()=>{syncDiscountInput();render()});
-  $("apply-discount").addEventListener("click",()=>{const value=Number($("discount-input").value);const r=periodReadings(),e=periodExpenses();const gross=sum(r,x=>x.kwh*rate)+sum(e,x=>x.value);if(!Number.isFinite(value)||value<0){alert("Informe um desconto válido em reais.");return}if(value>gross){alert("O desconto não pode ser maior que o total de custos do período ("+currency.format(gross)+").");return}discounts[selectedMonth()||"all"]=value;saveDiscounts();$("discount-feedback").textContent=value>0?"Desconto aplicado: "+currency.format(value):"Desconto removido";render()});
+  document.querySelectorAll(".period-options input").forEach(input=>input.addEventListener("change",()=>{updatePeriodLabel();syncDiscountInput();render()}));
+  $("period-all").addEventListener("click",()=>{document.querySelectorAll(".period-options input").forEach(x=>x.checked=true);updatePeriodLabel();syncDiscountInput();render()});
+  $("apply-discount").addEventListener("click",()=>{const value=Number($("discount-input").value);const r=periodReadings(),e=periodExpenses();const gross=sum(r,x=>x.kwh*rate)+sum(e,x=>x.value);if(!Number.isFinite(value)||value<0){alert("Informe um desconto válido em reais.");return}if(value>gross){alert("O desconto não pode ser maior que o total de custos do período ("+currency.format(gross)+").");return}discounts[periodKey()]=value;saveDiscounts();$("discount-feedback").textContent=value>0?"Desconto aplicado: "+currency.format(value):"Desconto removido";render()});
   $("entry-date").value=new Date().toLocaleDateString("en-CA");
   $("entry-form").addEventListener("submit",ev=>{ev.preventDefault();const value=Number($("entry-value").value);const description=$("entry-description").value.trim();const date=$("entry-date").value;if(!date||!description||!Number.isFinite(value)||value<=0){alert("Preencha data, descrição e valor válido.");return}expenses.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),date,description,category:$("entry-category").value,value});saveExpenses();$("entry-form").reset();$("entry-date").value=new Date().toLocaleDateString("en-CA");render()});
   $("history-body").addEventListener("click",ev=>{const b=ev.target.closest("[data-delete]");if(!b)return;if(!confirm("Excluir esta despesa?"))return;expenses=expenses.filter(e=>e.id!==b.dataset.delete);saveExpenses();render()});
-  $("export-csv").addEventListener("click",()=>{const rows=[["Tipo","Data","Descrição","Categoria","Consumo (kWh)","Tarifa (R$/kWh)","Valor estimado (R$)"],...periodReadings().map(r=>["Consumo diário",r.date,"Leitura Cemig","Energia",r.kwh,rate,(r.kwh*rate).toFixed(2)]),...periodExpenses().map(e=>["Despesa adicional",e.date,e.description,e.category,"",rate,e.value.toFixed(2)])];const csv="\uFEFF"+rows.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="dre-cemig-"+(selectedMonth()||"historico")+".csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)});
+  $("export-csv").addEventListener("click",()=>{const rows=[["Tipo","Data","Descrição","Categoria","Consumo (kWh)","Tarifa (R$/kWh)","Valor estimado (R$)"],...periodReadings().map(r=>["Consumo diário",r.date,"Leitura Cemig","Energia",r.kwh,rate,(r.kwh*rate).toFixed(2)]),...periodExpenses().map(e=>["Despesa adicional",e.date,e.description,e.category,"",rate,e.value.toFixed(2)])];const csv="\uFEFF"+rows.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="dre-cemig-"+(selectedMonth()||"historico").replaceAll("|","_")+".csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)});
+  updatePeriodLabel();
   syncDiscountInput();
   render();
 })();

@@ -28,8 +28,14 @@
   function renderDaily(data){
     $("chart-caption").textContent=data.length+" dias com leitura";
     if(!data.length){$("daily-chart").innerHTML='<div class="empty-state">Sem leituras para este período.</div>';return}
-    const max=Math.max(1,...data.map(r=>r.kwh));
-    $("daily-chart").innerHTML=data.map(r=>{const day=r.date.slice(8);return `<div class="day-column" title="${fmtDate(r.date)} · ${number.format(r.kwh)} kWh"><span class="day-value">${number.format(r.kwh)}</span><div class="day-track"><div class="day-fill" style="height:${Math.max(2,r.kwh/max*100)}%"></div></div><small>${day}</small></div>`}).join("");
+    const ordered=[...data].sort((a,b)=>a.date.localeCompare(b.date));
+    const max=Math.max(1,...ordered.map(r=>r.kwh));
+    $("daily-chart").innerHTML=ordered.map((r,i)=>{
+      const day=r.date.slice(8), previous=ordered[i-1], higher=!!previous&&r.kwh>previous.kwh;
+      const delta=previous?r.kwh-previous.kwh:0;
+      const comparison=!previous?"Primeira leitura do período":higher?"Subiu "+number.format(delta)+" kWh em relação ao dia anterior":(delta<0?"Caiu ":"Manteve ")+number.format(Math.abs(delta))+" kWh em relação ao dia anterior";
+      return '<div class="day-column '+(higher?'is-higher':'')+'" tabindex="0" aria-label="'+fmtDate(r.date)+': '+number.format(r.kwh)+' kWh"><span class="day-value">'+number.format(r.kwh)+'</span><div class="day-track"><div class="day-fill '+(higher?'higher':'')+'" style="height:'+Math.max(2,r.kwh/max*100)+'%"></div></div><small>'+day+'</small><div class="chart-tooltip"><b>'+fmtDate(r.date)+'</b><strong>'+number.format(r.kwh)+' <small>kWh</small></strong><span>'+currency.format(r.kwh*rate)+'</span><em class="'+(higher?'up':'')+'">'+comparison+'</em></div></div>';
+    }).join("");
   }
   function renderReadings(data){
     $("readings-body").innerHTML=[...data].sort((a,b)=>b.date.localeCompare(a.date)).map(r=>`<tr><td>${fmtDate(r.date)}</td><td class="numeric">${number.format(r.kwh)} kWh</td><td class="numeric">${currency.format(r.kwh*rate)}</td></tr>`).join("");

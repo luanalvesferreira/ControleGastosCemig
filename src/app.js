@@ -128,6 +128,7 @@
     document.querySelectorAll(".toolbar details[open]").forEach(menu=>menu.removeAttribute("open"));
     render();
   });
+  $("clear-discount").addEventListener("click",()=>{discounts.global=0;saveDiscounts();syncDiscountInput();render()});
   $("apply-discount").addEventListener("click",()=>{const value=Number($("discount-input").value);const r=periodReadings(),e=periodExpenses();const gross=sum(r,x=>x.kwh*rate);if(!Number.isFinite(value)||value<0){alert("Informe um desconto válido em reais.");return}if(value>gross){alert("O desconto não pode ser maior que o total de custos do período ("+currency.format(gross)+").");return}discounts.global=value;saveDiscounts();syncDiscountInput();render()});
   $("entry-date").value=new Date().toLocaleDateString("en-CA");
   $("entry-form").addEventListener("submit",ev=>{ev.preventDefault();const value=Number($("entry-value").value);const description=$("entry-description").value.trim();const date=$("entry-date").value;if(!date||!description||!Number.isFinite(value)||value<=0){alert("Preencha data, descrição e valor válido.");return}expenses.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),date,description,category:$("entry-category").value,value});saveExpenses();$("entry-form").reset();$("entry-date").value=new Date().toLocaleDateString("en-CA");render()});

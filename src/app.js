@@ -1,83 +1,63 @@
 (() => {
   "use strict";
-  const STORAGE_KEY = "controle-gastos-cemig-v1";
-  const $ = (id) => document.getElementById(id);
-  const currency = new Intl.NumberFormat("pt-BR", {style:"currency",currency:"BRL"});
-  const number = new Intl.NumberFormat("pt-BR", {minimumFractionDigits:2,maximumFractionDigits:2});
-  let entries = load();
-
-  function load() {
-    try {
-      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-      return Array.isArray(raw) ? raw.filter(x => x && typeof x.id === "string" && typeof x.date === "string") : [];
-    } catch (error) {
-      console.warn("Não foi possível ler os lançamentos salvos.", error);
-      return [];
-    }
+  const STORAGE_KEY="cemig-dre-expenses-v1", RATE_KEY="cemig-dre-rate-v1";
+  const $=id=>document.getElementById(id);
+  const currency=new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"});
+  const number=new Intl.NumberFormat("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+  const monthNames={"2026-09":"Setembro 2026","2026-10":"Outubro 2026","2026-11":"Novembro 2026"};
+  const readings=(window.CEMIG_BASE?.readings||[]).map(([date,kwh])=>({date,kwh:Number(kwh)}));
+  let expenses=loadExpenses();
+  let rate=loadRate();
+  function loadExpenses(){try{const x=JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");return Array.isArray(x)?x:[]}catch{return []}}
+  function loadRate(){const n=Number(localStorage.getItem(RATE_KEY));return Number.isFinite(n)&&n>=0?n:(window.CEMIG_BASE?.rateDefault||1.1780)}
+  function saveExpenses(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(expenses))}catch{alert("Não foi possível salvar no navegador. Exporte seus dados para backup.")}}
+  function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+  function fmtDate(s){return s.split("-").reverse().join("/")}
+  function selectedMonth(){return $("filter-month").value}
+  function inPeriod(date){return !selectedMonth()||date.startsWith(selectedMonth())}
+  function periodReadings(){return readings.filter(r=>inPeriod(r.date))}
+  function periodExpenses(){return expenses.filter(e=>inPeriod(e.date)).sort((a,b)=>b.date.localeCompare(a.date))}
+  function sum(arr,fn){return arr.reduce((acc,x)=>acc+fn(x),0)}
+  function renderMonthly(){
+    const months=["2026-09","2026-10","2026-11"];
+    const totals=months.map(m=>({month:m,kwh:sum(readings.filter(r=>r.date.startsWith(m)),r=>r.kwh)}));
+    const max=Math.max(1,...totals.map(x=>x.kwh*rate));
+    $("monthly-chart").innerHTML=totals.map(x=>{const cost=x.kwh*rate;return `<div class="bar-item"><div class="bar-value">${currency.format(cost)}</div><div class="bar-track"><div class="bar-fill ${x.month===selectedMonth()?"selected":""}" style="height:${Math.max(3,cost/max*100)}%" title="${number.format(x.kwh)} kWh"></div></div><div class="bar-label">${monthNames[x.month].split(" ")[0]}</div></div>`}).join("");
+    $("monthly-summary").innerHTML=totals.map(x=>`<div><span>${monthNames[x.month]}</span><b>${number.format(x.kwh)} kWh</b></div>`).join("");
   }
-  function save() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
-    catch (error) { alert("Não foi possível salvar. Verifique o espaço disponível no navegador."); }
+  function renderDaily(data){
+    $("chart-caption").textContent=data.length+" dias com leitura";
+    if(!data.length){$("daily-chart").innerHTML='<div class="empty-state">Sem leituras para este período.</div>';return}
+    const max=Math.max(1,...data.map(r=>r.kwh));
+    $("daily-chart").innerHTML=data.map(r=>{const day=r.date.slice(8);return `<div class="day-column" title="${fmtDate(r.date)} · ${number.format(r.kwh)} kWh"><span class="day-value">${number.format(r.kwh)}</span><div class="day-track"><div class="day-fill" style="height:${Math.max(2,r.kwh/max*100)}%"></div></div><small>${day}</small></div>`}).join("");
   }
-  function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function renderReadings(data){
+    $("readings-body").innerHTML=[...data].sort((a,b)=>b.date.localeCompare(a.date)).map(r=>`<tr><td>${fmtDate(r.date)}</td><td class="numeric">${number.format(r.kwh)} kWh</td><td class="numeric">${currency.format(r.kwh*rate)}</td></tr>`).join("");
+    $("reading-count").textContent=data.length+" leituras";
   }
-  function filtered() {
-    const month = $("filter-month").value;
-    const category = $("filter-category").value;
-    return entries.filter(e => (!month || e.date.startsWith(month)) && (!category || e.category === category))
-      .sort((a,b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+  function render(){
+    const r=periodReadings(), e=periodExpenses();
+    const kwh=sum(r,x=>x.kwh), energy=kwh*rate, other=sum(e,x=>x.value), total=energy+other;
+    $("total-consumption").textContent=number.format(kwh)+" kWh";
+    $("days-count").textContent=r.length+" dias com leitura";
+    $("energy-cost").textContent=currency.format(energy);
+    $("other-expenses").textContent=currency.format(other);
+    $("grand-total").textContent=currency.format(total);
+    $("dre-kwh").textContent=number.format(kwh)+" kWh";
+    $("dre-energy").textContent=currency.format(energy);
+    $("dre-other").textContent=currency.format(other);
+    $("dre-total").textContent=currency.format(total);
+    $("history-body").innerHTML=e.map(x=>`<tr><td>${fmtDate(x.date)}</td><td>${esc(x.description)}</td><td><span class="tag">${esc(x.category)}</span></td><td class="numeric">${currency.format(x.value)}</td><td><button class="delete" data-delete="${esc(x.id)}" type="button">Excluir</button></td></tr>`).join("");
+    $("empty-state").hidden=e.length>0;
+    $("record-count").textContent=e.length+(e.length===1?" lançamento":" lançamentos");
+    renderMonthly();renderDaily(r);renderReadings(r);
   }
-  function render() {
-    const data = filtered();
-    const expenses = data.reduce((s,e) => s + (Number(e.value)||0),0);
-    const kwhEntries = data.filter(e => e.kwh !== null && Number.isFinite(Number(e.kwh)));
-    const kwh = kwhEntries.reduce((s,e) => s + Number(e.kwh),0);
-    $("total-expenses").textContent = currency.format(expenses);
-    $("total-consumption").textContent = number.format(kwh) + " kWh";
-    $("daily-average").textContent = number.format(kwhEntries.length ? kwh/kwhEntries.length : 0) + " kWh";
-    $("expense-period").textContent = $("filter-month").value ? "Mês selecionado" : "Todos os lançamentos";
-    $("record-count").textContent = data.length + (data.length === 1 ? " registro" : " registros");
-    $("history-body").innerHTML = data.map(e => `<tr>
-      <td>${escapeHtml(e.date.split("-").reverse().join("/"))}</td>
-      <td>${escapeHtml(e.description)}</td>
-      <td><span class="tag">${escapeHtml(e.category)}</span></td>
-      <td class="numeric">${e.kwh === null ? "—" : number.format(Number(e.kwh)) + " kWh"}</td>
-      <td class="numeric">${e.value === null ? "—" : currency.format(Number(e.value))}</td>
-      <td><button class="delete" type="button" data-delete="${escapeHtml(e.id)}" aria-label="Excluir lançamento">Excluir</button></td>
-    </tr>`).join("");
-    $("empty-state").hidden = data.length > 0;
-  }
-  $("entry-date").value = new Date().toLocaleDateString("en-CA");
-  $("entry-form").addEventListener("submit", event => {
-    event.preventDefault();
-    const description = $("entry-description").value.trim();
-    const valueRaw = $("entry-value").value;
-    const kwhRaw = $("entry-kwh").value;
-    const value = valueRaw === "" ? null : Number(valueRaw);
-    const kwh = kwhRaw === "" ? null : Number(kwhRaw);
-    if (!description) return alert("Informe uma descrição.");
-    if (value === null && kwh === null) return alert("Informe um valor ou consumo.");
-    if ((value !== null && (!Number.isFinite(value) || value < 0)) || (kwh !== null && (!Number.isFinite(kwh) || kwh < 0))) return alert("Informe números válidos e não negativos.");
-    entries.push({id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),date:$("entry-date").value,description,category:$("entry-category").value,value,kwh});
-    save(); $("entry-form").reset(); $("entry-date").value = new Date().toLocaleDateString("en-CA"); render();
-  });
-  $("history-body").addEventListener("click", event => {
-    const button = event.target.closest("[data-delete]");
-    if (!button) return;
-    const item = entries.find(e => e.id === button.dataset.delete);
-    if (!item || !confirm("Excluir este lançamento?")) return;
-    entries = entries.filter(e => e.id !== item.id); save(); render();
-  });
-  $("filter-month").addEventListener("change", render);
-  $("filter-category").addEventListener("change", render);
-  $("clear-filters").addEventListener("click", () => {$("filter-month").value="";$("filter-category").value="";render();});
-  $("export-csv").addEventListener("click", () => {
-    const rows = [["Data","Descrição","Categoria","Consumo (kWh)","Valor (R$)"],...filtered().map(e=>[e.date,e.description,e.category,e.kwh ?? "",e.value ?? ""])];
-    const csv = "\uFEFF" + rows.map(row => row.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(";")).join("\r\n");
-    const blob = new Blob([csv],{type:"text/csv;charset=utf-8"});
-    const url = URL.createObjectURL(blob); const a = document.createElement("a");
-    a.href=url; a.download="controle-gastos-cemig.csv"; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  });
+  $("rate-input").value=rate.toFixed(4);
+  $("save-rate").addEventListener("click",()=>{const next=Number($("rate-input").value);if(!Number.isFinite(next)||next<0){alert("Informe uma tarifa válida.");return}rate=next;localStorage.setItem(RATE_KEY,String(rate));$("rate-feedback").textContent="Tarifa aplicada: "+currency.format(rate)+"/kWh";render()});
+  $("filter-month").addEventListener("change",render);
+  $("entry-date").value=new Date().toLocaleDateString("en-CA");
+  $("entry-form").addEventListener("submit",ev=>{ev.preventDefault();const value=Number($("entry-value").value);const description=$("entry-description").value.trim();const date=$("entry-date").value;if(!date||!description||!Number.isFinite(value)||value<=0){alert("Preencha data, descrição e valor válido.");return}expenses.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),date,description,category:$("entry-category").value,value});saveExpenses();$("entry-form").reset();$("entry-date").value=new Date().toLocaleDateString("en-CA");render()});
+  $("history-body").addEventListener("click",ev=>{const b=ev.target.closest("[data-delete]");if(!b)return;if(!confirm("Excluir esta despesa?"))return;expenses=expenses.filter(e=>e.id!==b.dataset.delete);saveExpenses();render()});
+  $("export-csv").addEventListener("click",()=>{const rows=[["Tipo","Data","Descrição","Categoria","Consumo (kWh)","Tarifa (R$/kWh)","Valor estimado (R$)"],...periodReadings().map(r=>["Consumo diário",r.date,"Leitura Cemig","Energia",r.kwh,rate,(r.kwh*rate).toFixed(2)]),...periodExpenses().map(e=>["Despesa adicional",e.date,e.description,e.category,"",rate,e.value.toFixed(2)])];const csv="\uFEFF"+rows.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="dre-cemig-"+(selectedMonth()||"historico")+".csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)});
   render();
 })();

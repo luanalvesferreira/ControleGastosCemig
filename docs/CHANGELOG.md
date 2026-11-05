@@ -1,5 +1,6 @@
-## [1.1.18] — 04/11/2026
-- Aumenta o botão de limpar desconto para 40px e amplia o ícone de círculo e X para 25px, com traço mais espesso e branco.
+## [1.1.19] — 04/11/2026
+- Substitui a exportação CSV por arquivo Excel XLSX com resumo financeiro e detalhamento dos lançamentos do período filtrado.
+- Formata o relatório com cabeçalhos personalizados, paleta verde, amarelo e branco, filtros, congelamento do cabeçalho e larguras de coluna ajustadas.
 
 ## [1.1.16] — 04/11/2026
 - Adiciona um botão compacto somente com ícone ao lado de “Aplicar desconto” para zerar e remover o desconto global.

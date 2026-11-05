@@ -133,7 +133,53 @@
   $("entry-date").value=new Date().toLocaleDateString("en-CA");
   $("entry-form").addEventListener("submit",ev=>{ev.preventDefault();const value=Number($("entry-value").value);const description=$("entry-description").value.trim();const date=$("entry-date").value;if(!date||!description||!Number.isFinite(value)||value<=0){alert("Preencha data, descrição e valor válido.");return}expenses.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),date,description,category:$("entry-category").value,value});saveExpenses();$("entry-form").reset();$("entry-date").value=new Date().toLocaleDateString("en-CA");render()});
   $("history-body").addEventListener("click",ev=>{const b=ev.target.closest("[data-delete]");if(!b)return;if(!confirm("Excluir esta despesa?"))return;expenses=expenses.filter(e=>e.id!==b.dataset.delete);saveExpenses();render()});
-  $("export-csv").addEventListener("click",()=>{const rows=[["Tipo","Data","Descrição","Categoria","Consumo (kWh)","Tarifa (R$/kWh)","Valor estimado (R$)"],...periodReadings().map(r=>["Consumo diário",r.date,"Leitura Cemig","Energia",r.kwh,rate,(r.kwh*rate).toFixed(2)]),...periodExpenses().map(e=>["Despesa adicional",e.date,e.description,e.category,"",rate,e.value.toFixed(2)])];const csv="\uFEFF"+rows.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="dre-cemig-"+(rangeKey()||selectedMonth()||"historico").replaceAll("|","_")+".csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)});
+  $("export-xlsx").addEventListener("click",()=>{
+    if(!window.XLSX){alert("Não foi possível carregar o gerador de Excel. Verifique sua conexão e tente novamente.");return}
+    const data=[
+      ...periodReadings().map(r=>["Consumo diário",r.date,"Leitura Cemig","Energia",r.kwh,rate,Number((r.kwh*rate).toFixed(2))]),
+      ...periodExpenses().map(e=>["Despesa adicional",e.date,e.description,e.category,"",rate,Number(e.value.toFixed(2))])
+    ].sort((a,b)=>String(a[1]).localeCompare(String(b[1])));
+    const totalKwh=sum(periodReadings(),x=>x.kwh),gross=totalKwh*rate,discount=Math.min(currentDiscount(),gross),other=sum(periodExpenses(),x=>x.value);
+    const rows=[
+      ["CONTROLE DE GASTOS — CEMIG"],["RELATÓRIO DE CONSUMO E DESPESAS"],
+      ["Período exportado",rangeKey()?selectedRanges().map(k=>customRanges[k].label).join(" + "):selectedMonths().map(m=>monthNames[m]).join(", ")||"Sem período selecionado"],
+      ["Tarifa aplicada (R$/kWh)",rate],[],["RESUMO FINANCEIRO"],
+      ["Consumo total (kWh)",Number(totalKwh.toFixed(2))],
+      ["Custo bruto de energia (R$)",Number(gross.toFixed(2))],
+      ["Desconto aplicado (R$)",Number(discount.toFixed(2))],
+      ["Despesas adicionais (R$)",Number(other.toFixed(2))],
+      ["TOTAL APÓS DESCONTO (R$)",Number((gross-discount+other).toFixed(2))],
+      [],["DETALHAMENTO DOS LANÇAMENTOS"],
+      ["Tipo de lançamento","Data","Descrição","Categoria","Consumo (kWh)","Tarifa (R$/kWh)","Valor (R$)"],
+      ...data
+    ];
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    ws["!merges"]=[{s:{r:0,c:0},e:{r:0,c:6}},{s:{r:1,c:0},e:{r:1,c:6}},{s:{r:5,c:0},e:{r:5,c:6}},{s:{r:12,c:0},e:{r:12,c:6}}];
+    ws["!cols"]=[{wch:24},{wch:14},{wch:34},{wch:22},{wch:18},{wch:20},{wch:18}];
+    ws["!rows"]=[{hpt:30},{hpt:22},{hpt:21},{hpt:21},{hpt:9},{hpt:23},{hpt:21},{hpt:21},{hpt:21},{hpt:21},{hpt:25},{hpt:9},{hpt:23},{hpt:30}];
+    ws["!autofilter"]={ref:"A14:G"+Math.max(14,rows.length)};
+    ws["!freeze"]={xSplit:0,ySplit:14};
+    const green="087653",dark="064B38",pale="EAF5EE",yellow="FFF2CC",white="FFFFFF",gray="52675B";
+    const style=(cell,s)=>{if(ws[cell])ws[cell].s=s};
+    const title={font:{name:"Aptos Display",sz:16,bold:true,color:{rgb:white}},fill:{fgColor:{rgb:dark}},alignment:{vertical:"center"}};
+    const section={font:{name:"Aptos",sz:11,bold:true,color:{rgb:white}},fill:{fgColor:{rgb:green}},alignment:{vertical:"center"}};
+    [0,1,5,12].forEach(row=>{for(let c=0;c<7;c++){const a=XLSX.utils.encode_cell({r:row,c});if(ws[a])ws[a].s=row===0?title:section}});
+    const label={font:{bold:true,color:{rgb:dark}},fill:{fgColor:{rgb:pale}},alignment:{vertical:"center"}};
+    [2,3,6,7,8,9,10].forEach(row=>style("A"+(row+1),label));
+    for(let c=0;c<7;c++)style(XLSX.utils.encode_cell({r:13,c}),{font:{bold:true,color:{rgb:white},sz:10},fill:{fgColor:{rgb:green}},alignment:{horizontal:"center",vertical:"center",wrapText:true},border:{bottom:{style:"medium",color:{rgb:dark}}}});
+    data.forEach((item,i)=>{
+      const row=14+i,fill=i%2===0?pale:white;
+      for(let c=0;c<7;c++){const a=XLSX.utils.encode_cell({r:row,c});if(ws[a])ws[a].s={font:{name:"Aptos",sz:10,color:{rgb:gray}},fill:{fgColor:{rgb:fill}},alignment:{vertical:"center",horizontal:c>=4?"right":"left"},border:{bottom:{style:"hair",color:{rgb:"DCE9DF"}}}}}
+      const dateCell="B"+(row+1);if(ws[dateCell]){ws[dateCell].t="d";ws[dateCell].v=new Date(item[1]+"T12:00:00");ws[dateCell].z="dd/mm/yyyy"}
+      ["F","G"].forEach(col=>{if(ws[col+(row+1)])ws[col+(row+1)].z='"R$" #,##0.00'});
+      if(ws["E"+(row+1)])ws["E"+(row+1)].z="#,##0.00";
+    });
+    ["B4","B8","B9","B10","B11"].forEach(cell=>{if(ws[cell])ws[cell].z='"R$" #,##0.00'});
+    if(ws.B7)ws.B7.z="#,##0.00";
+    for(let c=0;c<7;c++)style(XLSX.utils.encode_cell({r:10,c}),{font:{bold:true,color:{rgb:dark}},fill:{fgColor:{rgb:yellow}},border:{top:{style:"medium",color:{rgb:green}}},alignment:{vertical:"center"}});
+    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"DRE Cemig");
+    XLSX.writeFile(wb,"dre-cemig-"+(rangeKey()||selectedMonth()||"historico").replaceAll("|","_")+".xlsx",{cellStyles:true});
+  });
   updatePeriodLabel();
   updateRangeLabel();
   updateDateLabel();

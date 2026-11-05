@@ -1,5 +1,5 @@
-## [1.1.17] — 04/11/2026
-- Altera o botão de limpar desconto para fundo vermelho com o círculo e o X em branco.
+## [1.1.18] — 04/11/2026
+- Aumenta o botão de limpar desconto para 40px e amplia o ícone de círculo e X para 25px, com traço mais espesso e branco.
 
 ## [1.1.16] — 04/11/2026
 - Adiciona um botão compacto somente com ícone ao lado de “Aplicar desconto” para zerar e remover o desconto global.

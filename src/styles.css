@@ -85,3 +85,7 @@
 .clear-discount:hover{background:#ffefcf;color:#805d0d}
 .clear-discount svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 @media(max-width:600px){.clear-discount{width:34px;min-width:34px;flex:0 0 34px}}
+
+/* v1.1.17 — ícone de limpar desconto em vermelho */
+.clear-discount{background:#dc3545;border:1px solid #c82333;color:#fff}
+.clear-discount:hover{background:#bd2130;border-color:#b21f2d;color:#fff}

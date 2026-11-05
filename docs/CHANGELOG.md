@@ -1,3 +1,6 @@
+## [1.1.17] — 04/11/2026
+- Altera o botão de limpar desconto para fundo vermelho com o círculo e o X em branco.
+
 ## [1.1.16] — 04/11/2026
 - Adiciona um botão compacto somente com ícone ao lado de “Aplicar desconto” para zerar e remover o desconto global.
 - Ao limpar, atualiza o campo, os cards e o DRE imediatamente, preservando os filtros selecionados.

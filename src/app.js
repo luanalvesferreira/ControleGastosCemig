@@ -41,7 +41,18 @@
     return m.includes(date.slice(0,7))&&(!dateFilterActive()||selectedDates().includes(date));
   }
   function periodReadings(){return readings.filter(r=>inPeriod(r.date))}
-  function periodExpenses(){return expenses.filter(e=>inPeriod(e.date)).sort((a,b)=>b.date.localeCompare(a.date))}
+  function periodExpenses(){
+    const ranges=selectedRanges();
+    const months=selectedMonths();
+    const days=selectedDates();
+    return expenses.filter(e=>{
+      // Período personalizado: considera a despesa se sua data estiver dentro de qualquer intervalo selecionado (inclusive as extremidades).
+      if(ranges.length)return ranges.some(key=>e.date>=customRanges[key].start&&e.date<=customRanges[key].end);
+      // Sem intervalo personalizado, respeita mês e, quando usado, o filtro de dias.
+      if(!months.includes(e.date.slice(0,7)))return false;
+      return !days.length||days.includes(e.date);
+    }).sort((a,b)=>b.date.localeCompare(a.date));
+  }
   function buildDateOptions(){
     const dates=[...new Set(readings.map(r=>r.date))].sort();
     const months=selectedMonths();

@@ -1,3 +1,7 @@
+## [1.1.24] — 10/11/2026
+- Renomeia o indicador “Total após desconto” para “Custo Total” no painel e no DRE.
+- Reforça discretamente o destaque visual do card Custo Total com borda dourada, fundo suave e sombra mais evidente.
+
 ## [1.1.23] — 10/11/2026
 - Atualiza o segundo período personalizado para 20/10/2026 a 15/11/2026.
 

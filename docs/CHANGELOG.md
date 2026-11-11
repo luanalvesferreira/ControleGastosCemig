@@ -1,4 +1,4 @@
-## [1.1.21] — 10/11/2026
+## [1.1.22] — 10/11/2026\n- Corrige o layout do campo Tarifa Pública para manter o valor, os botões e os filtros organizados em telas desktop e celulares.\n\n## [1.1.21] — 10/11/2026
 - Adiciona o campo Tarifa Pública em reais, com aplicação e limpeza independentes, persistência no navegador e inclusão no total geral do DRE e na exportação XLSX.
 
 ## [1.1.20] — 10/11/2026

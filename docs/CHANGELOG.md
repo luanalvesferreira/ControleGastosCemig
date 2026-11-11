@@ -1,3 +1,6 @@
+## [1.1.22] — 10/11/2026
+- Corrige o filtro das despesas adicionais: considera o mês da data de lançamento e, em períodos personalizados, inclui despesas cuja data esteja dentro do intervalo selecionado, inclusive nas datas inicial e final.
+
 ## [1.1.21] — 10/11/2026
 - Destaca o card Total após desconto com fundo e tipografia em tom dourado, diferenciando-o dos demais indicadores.
 

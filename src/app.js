@@ -1,6 +1,6 @@
 (() => {
   "use strict";
-  const STORAGE_KEY="cemig-dre-expenses-v1", RATE_KEY="cemig-dre-rate-v1", DISCOUNT_KEY="cemig-dre-discounts-v1";
+  const STORAGE_KEY="cemig-dre-expenses-v1", RATE_KEY="cemig-dre-rate-v1", DISCOUNT_KEY="cemig-dre-discounts-v1", PUBLIC_TARIFF_KEY="cemig-dre-public-tariff-v1";
   const $=id=>document.getElementById(id);
   const currency=new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"});
   const number=new Intl.NumberFormat("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -9,6 +9,9 @@
   let expenses=loadExpenses();
   let rate=loadRate();
   let discounts=loadDiscounts();
+  let publicTariff=loadPublicTariff();
+  function loadPublicTariff(){const n=Number(localStorage.getItem(PUBLIC_TARIFF_KEY));return Number.isFinite(n)&&n>=0?n:0}
+  function savePublicTariff(){localStorage.setItem(PUBLIC_TARIFF_KEY,String(publicTariff))}
   function loadDiscounts(){try{const x=JSON.parse(localStorage.getItem(DISCOUNT_KEY)||"{}");return x&&typeof x==="object"?x:{}}catch{return {}}}
   function saveDiscounts(){localStorage.setItem(DISCOUNT_KEY,JSON.stringify(discounts))}
   // Desconto global: permanece aplicado mesmo quando os filtros mudam.
@@ -78,7 +81,7 @@
   }
   function render(){
     const r=periodReadings(), e=periodExpenses();
-    const kwh=sum(r,x=>x.kwh), energy=kwh*rate, other=sum(e,x=>x.value), discount=Math.min(currentDiscount(),energy), netEnergy=energy-discount, total=netEnergy+other;
+    const kwh=sum(r,x=>x.kwh), energy=kwh*rate, other=sum(e,x=>x.value), discount=Math.min(currentDiscount(),energy), netEnergy=energy-discount, total=netEnergy+other+publicTariff;
     $("total-consumption").textContent=number.format(kwh)+" kWh";
     $("days-count").textContent=r.length+" dias com leitura";
     $("energy-cost").textContent=currency.format(netEnergy);
@@ -88,6 +91,7 @@
     $("dre-kwh").textContent=number.format(kwh)+" kWh";
     $("dre-energy").textContent=currency.format(energy);
     $("dre-other").textContent=currency.format(other);
+    $("dre-public-tariff").textContent="+ "+currency.format(publicTariff);
     $("dre-total").textContent=currency.format(total);
     $("history-body").innerHTML=e.map(x=>`<tr><td>${fmtDate(x.date)}</td><td>${esc(x.description)}</td><td><span class="tag">${esc(x.category)}</span></td><td class="numeric">${currency.format(x.value)}</td><td><button class="delete" data-delete="${esc(x.id)}" type="button">Excluir</button></td></tr>`).join("");
     $("empty-state").hidden=e.length>0;
@@ -129,6 +133,8 @@
     render();
   });
   $("clear-discount").addEventListener("click",()=>{discounts.global=0;saveDiscounts();syncDiscountInput();render()});
+  $("apply-public-tariff").addEventListener("click",()=>{const value=Number($("public-tariff-input").value);if(!Number.isFinite(value)||value<0){alert("Informe um valor válido para a Tarifa Pública.");return}publicTariff=value;savePublicTariff();$("public-tariff-input").value=publicTariff.toFixed(2);$("public-tariff-feedback").textContent="Tarifa Pública aplicada: "+currency.format(publicTariff);render()});
+  $("clear-public-tariff").addEventListener("click",()=>{publicTariff=0;savePublicTariff();$("public-tariff-input").value="0.00";$("public-tariff-feedback").textContent="Tarifa Pública removida.";render()});
   $("apply-discount").addEventListener("click",()=>{const value=Number($("discount-input").value);const r=periodReadings(),e=periodExpenses();const gross=sum(r,x=>x.kwh*rate);if(!Number.isFinite(value)||value<0){alert("Informe um desconto válido em reais.");return}if(value>gross){alert("O desconto não pode ser maior que o total de custos do período ("+currency.format(gross)+").");return}discounts.global=value;saveDiscounts();syncDiscountInput();render()});
   $("entry-date").value=new Date().toLocaleDateString("en-CA");
   $("entry-form").addEventListener("submit",ev=>{ev.preventDefault();const value=Number($("entry-value").value);const description=$("entry-description").value.trim();const date=$("entry-date").value;if(!date||!description||!Number.isFinite(value)||value<=0){alert("Preencha data, descrição e valor válido.");return}expenses.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),date,description,category:$("entry-category").value,value});saveExpenses();$("entry-form").reset();$("entry-date").value=new Date().toLocaleDateString("en-CA");render()});
@@ -148,7 +154,8 @@
       ["Custo bruto de energia (R$)",Number(gross.toFixed(2))],
       ["Desconto aplicado (R$)",Number(discount.toFixed(2))],
       ["Despesas adicionais (R$)",Number(other.toFixed(2))],
-      ["TOTAL APÓS DESCONTO (R$)",Number((gross-discount+other).toFixed(2))],
+      ["Tarifa Pública (R$)",Number(publicTariff.toFixed(2))],
+      ["TOTAL GERAL (R$)",Number((gross-discount+other+publicTariff).toFixed(2))],
       [],["DETALHAMENTO DOS LANÇAMENTOS"],
       ["Tipo de lançamento","Data","Descrição","Categoria","Consumo (kWh)","Tarifa (R$/kWh)","Valor (R$)"],
       ...data
@@ -174,7 +181,7 @@
       ["F","G"].forEach(col=>{if(ws[col+(row+1)])ws[col+(row+1)].z='"R$" #,##0.00'});
       if(ws["E"+(row+1)])ws["E"+(row+1)].z="#,##0.00";
     });
-    ["B4","B8","B9","B10","B11"].forEach(cell=>{if(ws[cell])ws[cell].z='"R$" #,##0.00'});
+    ["B4","B8","B9","B10","B11","B12"].forEach(cell=>{if(ws[cell])ws[cell].z='"R$" #,##0.00'});
     if(ws.B7)ws.B7.z="#,##0.00";
     for(let c=0;c<7;c++)style(XLSX.utils.encode_cell({r:10,c}),{font:{bold:true,color:{rgb:dark}},fill:{fgColor:{rgb:yellow}},border:{top:{style:"medium",color:{rgb:green}}},alignment:{vertical:"center"}});
     const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"DRE Cemig");

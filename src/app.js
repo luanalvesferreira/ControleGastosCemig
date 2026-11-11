@@ -84,7 +84,7 @@
     const kwh=sum(r,x=>x.kwh), energy=kwh*rate, other=sum(e,x=>x.value), discount=Math.min(currentDiscount(),energy), netEnergy=energy-discount, total=netEnergy+other+publicTariff;
     $("total-consumption").textContent=number.format(kwh)+" kWh";
     $("days-count").textContent=r.length+" dias com leitura";
-    $("energy-cost").textContent=currency.format(netEnergy);
+    $("energy-cost").textContent=currency.format(netEnergy+publicTariff);
     $("other-expenses").textContent=currency.format(other);
     $("grand-total").textContent=currency.format(total);
     $("dre-discount").textContent="− "+currency.format(discount);

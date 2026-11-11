@@ -1,3 +1,6 @@
+## [1.1.23] — 10/11/2026
+- Atualiza o segundo período personalizado para 20/10/2026 a 15/11/2026.
+
 ## [1.1.22] — 10/11/2026
 - Corrige o filtro das despesas adicionais: considera o mês da data de lançamento e, em períodos personalizados, inclui despesas cuja data esteja dentro do intervalo selecionado, inclusive nas datas inicial e final.
 

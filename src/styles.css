@@ -91,3 +91,6 @@
 .clear-discount:hover{background:#bd2130;border-color:#b21f2d;color:#fff}
 .clear-discount svg{width:25px;height:25px;stroke-width:2.5}
 @media(max-width:600px){.clear-discount{width:40px;min-width:40px;flex:0 0 40px}}
+
+/* v1.1.21: controle da Tarifa Pública segue o padrão do desconto */
+.public-tariff-control .discount-button{background:#eaf5ee;color:#087653;border-color:#c9e7d5}.public-tariff-control .discount-button:hover{background:#dff3e8}

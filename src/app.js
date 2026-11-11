@@ -1,6 +1,6 @@
 (() => {
   "use strict";
-  const STORAGE_KEY="cemig-dre-expenses-v1", RATE_KEY="cemig-dre-rate-v1", DISCOUNT_KEY="cemig-dre-discounts-v1", PUBLIC_TARIFF_KEY="cemig-dre-public-tariff-v1";
+  const STORAGE_KEY="cemig-dre-expenses-v1", RATE_KEY="cemig-dre-rate-v1", DISCOUNT_KEY="cemig-dre-discounts-v1";
   const $=id=>document.getElementById(id);
   const currency=new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"});
   const number=new Intl.NumberFormat("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -9,9 +9,6 @@
   let expenses=loadExpenses();
   let rate=loadRate();
   let discounts=loadDiscounts();
-  let publicTariff=loadPublicTariff();
-  function loadPublicTariff(){const n=Number(localStorage.getItem(PUBLIC_TARIFF_KEY));return Number.isFinite(n)&&n>=0?n:0}
-  function savePublicTariff(){localStorage.setItem(PUBLIC_TARIFF_KEY,String(publicTariff))}
   function loadDiscounts(){try{const x=JSON.parse(localStorage.getItem(DISCOUNT_KEY)||"{}");return x&&typeof x==="object"?x:{}}catch{return {}}}
   function saveDiscounts(){localStorage.setItem(DISCOUNT_KEY,JSON.stringify(discounts))}
   // Desconto global: permanece aplicado mesmo quando os filtros mudam.
@@ -81,17 +78,16 @@
   }
   function render(){
     const r=periodReadings(), e=periodExpenses();
-    const kwh=sum(r,x=>x.kwh), energy=kwh*rate, other=sum(e,x=>x.value), discount=Math.min(currentDiscount(),energy), netEnergy=energy-discount, total=netEnergy+other+publicTariff;
+    const kwh=sum(r,x=>x.kwh), energy=kwh*rate, other=sum(e,x=>x.value), discount=Math.min(currentDiscount(),energy), netEnergy=energy-discount, total=netEnergy+other;
     $("total-consumption").textContent=number.format(kwh)+" kWh";
     $("days-count").textContent=r.length+" dias com leitura";
-    $("energy-cost").textContent=currency.format(netEnergy+publicTariff);
+    $("energy-cost").textContent=currency.format(netEnergy);
     $("other-expenses").textContent=currency.format(other);
     $("grand-total").textContent=currency.format(total);
     $("dre-discount").textContent="− "+currency.format(discount);
     $("dre-kwh").textContent=number.format(kwh)+" kWh";
     $("dre-energy").textContent=currency.format(energy);
     $("dre-other").textContent=currency.format(other);
-    $("dre-public-tariff").textContent="+ "+currency.format(publicTariff);
     $("dre-total").textContent=currency.format(total);
     $("history-body").innerHTML=e.map(x=>`<tr><td>${fmtDate(x.date)}</td><td>${esc(x.description)}</td><td><span class="tag">${esc(x.category)}</span></td><td class="numeric">${currency.format(x.value)}</td><td><button class="delete" data-delete="${esc(x.id)}" type="button">Excluir</button></td></tr>`).join("");
     $("empty-state").hidden=e.length>0;
@@ -133,8 +129,6 @@
     render();
   });
   $("clear-discount").addEventListener("click",()=>{discounts.global=0;saveDiscounts();syncDiscountInput();render()});
-  $("apply-public-tariff").addEventListener("click",()=>{const value=Number($("public-tariff-input").value);if(!Number.isFinite(value)||value<0){alert("Informe um valor válido para a Tarifa Pública.");return}publicTariff=value;savePublicTariff();$("public-tariff-input").value=publicTariff.toFixed(2);$("public-tariff-feedback").textContent="Tarifa Pública aplicada: "+currency.format(publicTariff);render()});
-  $("clear-public-tariff").addEventListener("click",()=>{publicTariff=0;savePublicTariff();$("public-tariff-input").value="0.00";$("public-tariff-feedback").textContent="Tarifa Pública removida.";render()});
   $("apply-discount").addEventListener("click",()=>{const value=Number($("discount-input").value);const r=periodReadings(),e=periodExpenses();const gross=sum(r,x=>x.kwh*rate);if(!Number.isFinite(value)||value<0){alert("Informe um desconto válido em reais.");return}if(value>gross){alert("O desconto não pode ser maior que o total de custos do período ("+currency.format(gross)+").");return}discounts.global=value;saveDiscounts();syncDiscountInput();render()});
   $("entry-date").value=new Date().toLocaleDateString("en-CA");
   $("entry-form").addEventListener("submit",ev=>{ev.preventDefault();const value=Number($("entry-value").value);const description=$("entry-description").value.trim();const date=$("entry-date").value;if(!date||!description||!Number.isFinite(value)||value<=0){alert("Preencha data, descrição e valor válido.");return}expenses.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),date,description,category:$("entry-category").value,value});saveExpenses();$("entry-form").reset();$("entry-date").value=new Date().toLocaleDateString("en-CA");render()});
@@ -154,34 +148,33 @@
       ["Custo bruto de energia (R$)",Number(gross.toFixed(2))],
       ["Desconto aplicado (R$)",Number(discount.toFixed(2))],
       ["Despesas adicionais (R$)",Number(other.toFixed(2))],
-      ["Tarifa Pública (R$)",Number(publicTariff.toFixed(2))],
-      ["TOTAL GERAL (R$)",Number((gross-discount+other+publicTariff).toFixed(2))],
+      ["TOTAL APÓS DESCONTO (R$)",Number((gross-discount+other).toFixed(2))],
       [],["DETALHAMENTO DOS LANÇAMENTOS"],
       ["Tipo de lançamento","Data","Descrição","Categoria","Consumo (kWh)","Tarifa (R$/kWh)","Valor (R$)"],
       ...data
     ];
     const ws=XLSX.utils.aoa_to_sheet(rows);
-    ws["!merges"]=[{s:{r:0,c:0},e:{r:0,c:6}},{s:{r:1,c:0},e:{r:1,c:6}},{s:{r:5,c:0},e:{r:5,c:6}},{s:{r:13,c:0},e:{r:13,c:6}}];
+    ws["!merges"]=[{s:{r:0,c:0},e:{r:0,c:6}},{s:{r:1,c:0},e:{r:1,c:6}},{s:{r:5,c:0},e:{r:5,c:6}},{s:{r:12,c:0},e:{r:12,c:6}}];
     ws["!cols"]=[{wch:24},{wch:14},{wch:34},{wch:22},{wch:18},{wch:20},{wch:18}];
-    ws["!rows"]=[{hpt:30},{hpt:22},{hpt:21},{hpt:21},{hpt:9},{hpt:23},{hpt:21},{hpt:21},{hpt:21},{hpt:21},{hpt:21},{hpt:25},{hpt:9},{hpt:23},{hpt:30}];
-    ws["!autofilter"]={ref:"A15:G"+Math.max(15,rows.length)};
-    ws["!freeze"]={xSplit:0,ySplit:15};
+    ws["!rows"]=[{hpt:30},{hpt:22},{hpt:21},{hpt:21},{hpt:9},{hpt:23},{hpt:21},{hpt:21},{hpt:21},{hpt:21},{hpt:25},{hpt:9},{hpt:23},{hpt:30}];
+    ws["!autofilter"]={ref:"A14:G"+Math.max(14,rows.length)};
+    ws["!freeze"]={xSplit:0,ySplit:14};
     const green="087653",dark="064B38",pale="EAF5EE",yellow="FFF2CC",white="FFFFFF",gray="52675B";
     const style=(cell,s)=>{if(ws[cell])ws[cell].s=s};
     const title={font:{name:"Aptos Display",sz:16,bold:true,color:{rgb:white}},fill:{fgColor:{rgb:dark}},alignment:{vertical:"center"}};
     const section={font:{name:"Aptos",sz:11,bold:true,color:{rgb:white}},fill:{fgColor:{rgb:green}},alignment:{vertical:"center"}};
-    [0,1,5,13].forEach(row=>{for(let c=0;c<7;c++){const a=XLSX.utils.encode_cell({r:row,c});if(ws[a])ws[a].s=row===0?title:section}});
+    [0,1,5,12].forEach(row=>{for(let c=0;c<7;c++){const a=XLSX.utils.encode_cell({r:row,c});if(ws[a])ws[a].s=row===0?title:section}});
     const label={font:{bold:true,color:{rgb:dark}},fill:{fgColor:{rgb:pale}},alignment:{vertical:"center"}};
-    [2,3,6,7,8,9,10,11].forEach(row=>style("A"+(row+1),label));
+    [2,3,6,7,8,9,10].forEach(row=>style("A"+(row+1),label));
     for(let c=0;c<7;c++)style(XLSX.utils.encode_cell({r:13,c}),{font:{bold:true,color:{rgb:white},sz:10},fill:{fgColor:{rgb:green}},alignment:{horizontal:"center",vertical:"center",wrapText:true},border:{bottom:{style:"medium",color:{rgb:dark}}}});
     data.forEach((item,i)=>{
-      const row=15+i,fill=i%2===0?pale:white;
+      const row=14+i,fill=i%2===0?pale:white;
       for(let c=0;c<7;c++){const a=XLSX.utils.encode_cell({r:row,c});if(ws[a])ws[a].s={font:{name:"Aptos",sz:10,color:{rgb:gray}},fill:{fgColor:{rgb:fill}},alignment:{vertical:"center",horizontal:c>=4?"right":"left"},border:{bottom:{style:"hair",color:{rgb:"DCE9DF"}}}}}
       const dateCell="B"+(row+1);if(ws[dateCell]){ws[dateCell].t="d";ws[dateCell].v=new Date(item[1]+"T12:00:00");ws[dateCell].z="dd/mm/yyyy"}
       ["F","G"].forEach(col=>{if(ws[col+(row+1)])ws[col+(row+1)].z='"R$" #,##0.00'});
       if(ws["E"+(row+1)])ws["E"+(row+1)].z="#,##0.00";
     });
-    ["B4","B8","B9","B10","B11","B12"].forEach(cell=>{if(ws[cell])ws[cell].z='"R$" #,##0.00'});
+    ["B4","B8","B9","B10","B11"].forEach(cell=>{if(ws[cell])ws[cell].z='"R$" #,##0.00'});
     if(ws.B7)ws.B7.z="#,##0.00";
     for(let c=0;c<7;c++)style(XLSX.utils.encode_cell({r:10,c}),{font:{bold:true,color:{rgb:dark}},fill:{fgColor:{rgb:yellow}},border:{top:{style:"medium",color:{rgb:green}}},alignment:{vertical:"center"}});
     const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"DRE Cemig");

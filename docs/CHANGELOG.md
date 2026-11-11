@@ -1,3 +1,6 @@
+## [1.1.21] — 10/11/2026
+- Destaca o card Total após desconto com fundo e tipografia em tom dourado, diferenciando-o dos demais indicadores.
+
 ## [1.1.20] — 10/11/2026
 - Atualiza a base de consumo de novembro com as leituras diárias informadas de 01/11 a 09/11/2026.
 

@@ -1,3 +1,6 @@
+## [1.1.20] — 10/11/2026
+- Atualiza a base de consumo de novembro com as leituras diárias informadas de 01/11 a 09/11/2026.
+
 ## [1.1.19] — 04/11/2026
 - Substitui a exportação CSV por arquivo Excel XLSX com resumo financeiro e detalhamento dos lançamentos do período filtrado.
 - Formata o relatório com cabeçalhos personalizados, paleta verde, amarelo e branco, filtros, congelamento do cabeçalho e larguras de coluna ajustadas.

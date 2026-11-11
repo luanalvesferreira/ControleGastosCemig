@@ -94,7 +94,7 @@
 
 
 /* v1.1.21 — destaca o card de Total Geral */
-.metric.total-card{background:#fff7e6;border-color:#f0d69a;box-shadow:0 4px 18px #8a5a1210}
-.metric.total-card>span{color:#8a5a12}
-.metric.total-card strong{color:#946200}
-.metric.total-card small{color:#9b7a42}
+.metric.total-card{background:linear-gradient(135deg,#fff4d8 0%,#fffbf1 100%);border:2px solid #e7bd62;box-shadow:0 6px 22px #8a5a1226,inset 0 1px 0 #ffffff;border-radius:14px;transform:translateY(-1px)}
+.metric.total-card>span{color:#80500b;font-weight:700}
+.metric.total-card strong{color:#875900;font-weight:800}
+.metric.total-card small{color:#896b35}

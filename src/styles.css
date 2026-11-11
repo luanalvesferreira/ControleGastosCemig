@@ -91,3 +91,10 @@
 .clear-discount:hover{background:#bd2130;border-color:#b21f2d;color:#fff}
 .clear-discount svg{width:25px;height:25px;stroke-width:2.5}
 @media(max-width:600px){.clear-discount{width:40px;min-width:40px;flex:0 0 40px}}
+
+
+/* v1.1.21 — destaca o card de Total Geral */
+.metric.total-card{background:#fff7e6;border-color:#f0d69a;box-shadow:0 4px 18px #8a5a1210}
+.metric.total-card>span{color:#8a5a12}
+.metric.total-card strong{color:#946200}
+.metric.total-card small{color:#9b7a42}

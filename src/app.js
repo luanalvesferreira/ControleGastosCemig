@@ -161,21 +161,21 @@
       ...data
     ];
     const ws=XLSX.utils.aoa_to_sheet(rows);
-    ws["!merges"]=[{s:{r:0,c:0},e:{r:0,c:6}},{s:{r:1,c:0},e:{r:1,c:6}},{s:{r:5,c:0},e:{r:5,c:6}},{s:{r:12,c:0},e:{r:12,c:6}}];
+    ws["!merges"]=[{s:{r:0,c:0},e:{r:0,c:6}},{s:{r:1,c:0},e:{r:1,c:6}},{s:{r:5,c:0},e:{r:5,c:6}},{s:{r:13,c:0},e:{r:13,c:6}}];
     ws["!cols"]=[{wch:24},{wch:14},{wch:34},{wch:22},{wch:18},{wch:20},{wch:18}];
-    ws["!rows"]=[{hpt:30},{hpt:22},{hpt:21},{hpt:21},{hpt:9},{hpt:23},{hpt:21},{hpt:21},{hpt:21},{hpt:21},{hpt:25},{hpt:9},{hpt:23},{hpt:30}];
-    ws["!autofilter"]={ref:"A14:G"+Math.max(14,rows.length)};
-    ws["!freeze"]={xSplit:0,ySplit:14};
+    ws["!rows"]=[{hpt:30},{hpt:22},{hpt:21},{hpt:21},{hpt:9},{hpt:23},{hpt:21},{hpt:21},{hpt:21},{hpt:21},{hpt:21},{hpt:25},{hpt:9},{hpt:23},{hpt:30}];
+    ws["!autofilter"]={ref:"A15:G"+Math.max(15,rows.length)};
+    ws["!freeze"]={xSplit:0,ySplit:15};
     const green="087653",dark="064B38",pale="EAF5EE",yellow="FFF2CC",white="FFFFFF",gray="52675B";
     const style=(cell,s)=>{if(ws[cell])ws[cell].s=s};
     const title={font:{name:"Aptos Display",sz:16,bold:true,color:{rgb:white}},fill:{fgColor:{rgb:dark}},alignment:{vertical:"center"}};
     const section={font:{name:"Aptos",sz:11,bold:true,color:{rgb:white}},fill:{fgColor:{rgb:green}},alignment:{vertical:"center"}};
-    [0,1,5,12].forEach(row=>{for(let c=0;c<7;c++){const a=XLSX.utils.encode_cell({r:row,c});if(ws[a])ws[a].s=row===0?title:section}});
+    [0,1,5,13].forEach(row=>{for(let c=0;c<7;c++){const a=XLSX.utils.encode_cell({r:row,c});if(ws[a])ws[a].s=row===0?title:section}});
     const label={font:{bold:true,color:{rgb:dark}},fill:{fgColor:{rgb:pale}},alignment:{vertical:"center"}};
-    [2,3,6,7,8,9,10].forEach(row=>style("A"+(row+1),label));
+    [2,3,6,7,8,9,10,11].forEach(row=>style("A"+(row+1),label));
     for(let c=0;c<7;c++)style(XLSX.utils.encode_cell({r:13,c}),{font:{bold:true,color:{rgb:white},sz:10},fill:{fgColor:{rgb:green}},alignment:{horizontal:"center",vertical:"center",wrapText:true},border:{bottom:{style:"medium",color:{rgb:dark}}}});
     data.forEach((item,i)=>{
-      const row=14+i,fill=i%2===0?pale:white;
+      const row=15+i,fill=i%2===0?pale:white;
       for(let c=0;c<7;c++){const a=XLSX.utils.encode_cell({r:row,c});if(ws[a])ws[a].s={font:{name:"Aptos",sz:10,color:{rgb:gray}},fill:{fgColor:{rgb:fill}},alignment:{vertical:"center",horizontal:c>=4?"right":"left"},border:{bottom:{style:"hair",color:{rgb:"DCE9DF"}}}}}
       const dateCell="B"+(row+1);if(ws[dateCell]){ws[dateCell].t="d";ws[dateCell].v=new Date(item[1]+"T12:00:00");ws[dateCell].z="dd/mm/yyyy"}
       ["F","G"].forEach(col=>{if(ws[col+(row+1)])ws[col+(row+1)].z='"R$" #,##0.00'});

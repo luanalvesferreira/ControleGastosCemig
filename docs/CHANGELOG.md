@@ -1,3 +1,6 @@
+## [1.1.25] — 24/11/2026
+- Substitui as leituras de novembro pela base diária informada de 01/11 a 22/11/2026 (120,77 kWh no período).
+
 ## [1.1.24] — 10/11/2026
 - Renomeia o indicador “Total após desconto” para “Custo Total” no painel e no DRE.
 - Reforça discretamente o destaque visual do card Custo Total com borda dourada, fundo suave e sombra mais evidente.

@@ -98,3 +98,6 @@
 .metric.total-card>span{color:#80500b;font-weight:700}
 .metric.total-card strong{color:#875900;font-weight:800}
 .metric.total-card small{color:#896b35}
+
+/* v1.1.26 — ações de edição das despesas */
+.row-actions{white-space:nowrap}.row-actions button{margin-left:5px}.edit{color:#17634b;background:#e8f5ed;border-radius:7px;padding:6px 9px;font-size:10px}.entry-form #cancel-edit{background:#eef1ef;color:#53675b}.entry-form #cancel-edit[hidden]{display:none}

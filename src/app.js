@@ -28,7 +28,7 @@
   function selectedMonth(){const m=selectedMonths();return m.length===1?m[0]:m.length===3?"":m.join(",")}
   function periodKey(){const m=selectedMonths();return m.length===3?"all":m.length?m.sort().join("|"):"none"}
   function updatePeriodLabel(){const m=selectedMonths();$("period-summary").textContent=m.length===0?"Nenhum mês":m.length===3?"Todo o histórico":m.length===1?monthNames[m[0]]:m.length+" meses selecionados"}
-  const customRanges = {p0:{start:"2026-09-18",end:"2026-10-20",label:"18/09/2026 a 20/10/2026"},p1:{start:"2026-10-20",end:"2026-11-17",label:"20/10/2026 a 17/11/2026"},p2:{start:"2026-11-18",end:"2026-12-15",label:"18/11/2026 a 15/12/2026"}};
+  const customRanges = {p0:{start:"2026-09-18",end:"2026-10-20",label:"18/09/2026 a 20/10/2026"},p1:{start:"2026-10-21",end:"2026-11-17",label:"21/10/2026 a 17/11/2026"},p2:{start:"2026-11-18",end:"2026-12-15",label:"18/11/2026 a 15/12/2026"}};
   function selectedRanges(){return [...document.querySelectorAll(".range-options input:checked")].map(x=>x.value)}
   function rangeKey(){const r=selectedRanges().sort();return r.length?r.join("|"):null}
   function updateRangeLabel(){const r=selectedRanges();$("range-summary").textContent=!r.length?"Todos os períodos":r.length===1?customRanges[r[0]].label:r.length+" períodos selecionados"}

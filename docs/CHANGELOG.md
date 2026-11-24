@@ -1,3 +1,6 @@
+## [1.1.28] — 24/11/2026
+- Ajusta o primeiro período personalizado de 20/10/2026–17/11/2026 para 21/10/2026–17/11/2026.
+
 ## [1.1.27] — 24/11/2026
 - Restaura o período personalizado de 18/09/2026 a 20/10/2026, mantendo também os dois intervalos já existentes.
 

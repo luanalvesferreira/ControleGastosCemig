@@ -1,3 +1,6 @@
+## [1.1.27] — 24/11/2026
+- Restaura o período personalizado de 18/09/2026 a 20/10/2026, mantendo também os dois intervalos já existentes.
+
 ## [1.1.26] — 24/11/2026
 - Atualiza os períodos personalizados para 20/10/2026–17/11/2026 e 18/11/2026–15/12/2026.
 - Adiciona edição de despesas cadastradas: o botão Editar carrega os dados no formulário, permite salvar alterações ou cancelar a edição.

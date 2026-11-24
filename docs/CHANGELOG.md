@@ -1,3 +1,7 @@
+## [1.1.26] — 24/11/2026
+- Atualiza os períodos personalizados para 20/10/2026–17/11/2026 e 18/11/2026–15/12/2026.
+- Adiciona edição de despesas cadastradas: o botão Editar carrega os dados no formulário, permite salvar alterações ou cancelar a edição.
+
 ## [1.1.25] — 24/11/2026
 - Substitui as leituras de novembro pela base diária informada de 01/11 a 22/11/2026 (120,77 kWh no período).
 

@@ -28,7 +28,7 @@
   function selectedMonth(){const m=selectedMonths();return m.length===1?m[0]:m.length===3?"":m.join(",")}
   function periodKey(){const m=selectedMonths();return m.length===3?"all":m.length?m.sort().join("|"):"none"}
   function updatePeriodLabel(){const m=selectedMonths();$("period-summary").textContent=m.length===0?"Nenhum mês":m.length===3?"Todo o histórico":m.length===1?monthNames[m[0]]:m.length+" meses selecionados"}
-  const customRanges = {p1:{start:"2026-09-18",end:"2026-10-20",label:"18/09/2026 a 20/10/2026"},p2:{start:"2026-10-20",end:"2026-11-15",label:"20/10/2026 a 15/11/2026"}};
+  const customRanges = {p1:{start:"2026-10-20",end:"2026-11-17",label:"20/10/2026 a 17/11/2026"},p2:{start:"2026-11-18",end:"2026-12-15",label:"18/11/2026 a 15/12/2026"}};
   function selectedRanges(){return [...document.querySelectorAll(".range-options input:checked")].map(x=>x.value)}
   function rangeKey(){const r=selectedRanges().sort();return r.length?r.join("|"):null}
   function updateRangeLabel(){const r=selectedRanges();$("range-summary").textContent=!r.length?"Todos os períodos":r.length===1?customRanges[r[0]].label:r.length+" períodos selecionados"}
@@ -87,6 +87,8 @@
     $("readings-body").innerHTML=[...data].sort((a,b)=>b.date.localeCompare(a.date)).map(r=>`<tr><td>${fmtDate(r.date)}</td><td class="numeric">${number.format(r.kwh)} kWh</td><td class="numeric">${currency.format(r.kwh*rate)}</td></tr>`).join("");
     $("reading-count").textContent=data.length+" leituras";
   }
+  let editingExpenseId=null;
+  function cancelExpenseEdit(){editingExpenseId=null;$("entry-form").reset();$("entry-date").value=new Date().toLocaleDateString("en-CA");$("entry-form").querySelector("button[type=submit]").textContent="＋ Adicionar despesa";$("cancel-edit").hidden=true}
   function render(){
     const r=periodReadings(), e=periodExpenses();
     const kwh=sum(r,x=>x.kwh), energy=kwh*rate, other=sum(e,x=>x.value), discount=Math.min(currentDiscount(),energy), netEnergy=energy-discount, total=netEnergy+other;
@@ -100,7 +102,7 @@
     $("dre-energy").textContent=currency.format(energy);
     $("dre-other").textContent=currency.format(other);
     $("dre-total").textContent=currency.format(total);
-    $("history-body").innerHTML=e.map(x=>`<tr><td>${fmtDate(x.date)}</td><td>${esc(x.description)}</td><td><span class="tag">${esc(x.category)}</span></td><td class="numeric">${currency.format(x.value)}</td><td><button class="delete" data-delete="${esc(x.id)}" type="button">Excluir</button></td></tr>`).join("");
+    $("history-body").innerHTML=e.map(x=>`<tr><td>${fmtDate(x.date)}</td><td>${esc(x.description)}</td><td><span class="tag">${esc(x.category)}</span></td><td class="numeric">${currency.format(x.value)}</td><td class="row-actions"><button class="edit" data-edit="${esc(x.id)}" type="button">Editar</button><button class="delete" data-delete="${esc(x.id)}" type="button">Excluir</button></td></tr>`).join("");
     $("empty-state").hidden=e.length>0;
     $("record-count").textContent=e.length+(e.length===1?" lançamento":" lançamentos");
     renderMonthly();renderDaily(r);renderReadings(r);
@@ -142,8 +144,9 @@
   $("clear-discount").addEventListener("click",()=>{discounts.global=0;saveDiscounts();syncDiscountInput();render()});
   $("apply-discount").addEventListener("click",()=>{const value=Number($("discount-input").value);const r=periodReadings(),e=periodExpenses();const gross=sum(r,x=>x.kwh*rate);if(!Number.isFinite(value)||value<0){alert("Informe um desconto válido em reais.");return}if(value>gross){alert("O desconto não pode ser maior que o total de custos do período ("+currency.format(gross)+").");return}discounts.global=value;saveDiscounts();syncDiscountInput();render()});
   $("entry-date").value=new Date().toLocaleDateString("en-CA");
-  $("entry-form").addEventListener("submit",ev=>{ev.preventDefault();const value=Number($("entry-value").value);const description=$("entry-description").value.trim();const date=$("entry-date").value;if(!date||!description||!Number.isFinite(value)||value<=0){alert("Preencha data, descrição e valor válido.");return}expenses.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),date,description,category:$("entry-category").value,value});saveExpenses();$("entry-form").reset();$("entry-date").value=new Date().toLocaleDateString("en-CA");render()});
-  $("history-body").addEventListener("click",ev=>{const b=ev.target.closest("[data-delete]");if(!b)return;if(!confirm("Excluir esta despesa?"))return;expenses=expenses.filter(e=>e.id!==b.dataset.delete);saveExpenses();render()});
+  $("entry-form").addEventListener("submit",ev=>{ev.preventDefault();const value=Number($("entry-value").value);const description=$("entry-description").value.trim();const date=$("entry-date").value;if(!date||!description||!Number.isFinite(value)||value<=0){alert("Preencha data, descrição e valor válido.");return}const fields={date,description,category:$("entry-category").value,value};if(editingExpenseId){expenses=expenses.map(e=>e.id===editingExpenseId?{...e,...fields}:e)}else{expenses.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),...fields})}saveExpenses();cancelExpenseEdit();render()});
+  $("cancel-edit").addEventListener("click",cancelExpenseEdit);
+  $("history-body").addEventListener("click",ev=>{const edit=ev.target.closest("[data-edit]");if(edit){const expense=expenses.find(e=>e.id===edit.dataset.edit);if(!expense)return;editingExpenseId=expense.id;$("entry-date").value=expense.date;$("entry-description").value=expense.description;$("entry-category").value=expense.category;$("entry-value").value=expense.value;$("entry-form").querySelector("button[type=submit]").textContent="Salvar alterações";$("cancel-edit").hidden=false;$("entry-form").scrollIntoView({behavior:"smooth",block:"center"});$("entry-description").focus();return}const del=ev.target.closest("[data-delete]");if(!del)return;if(!confirm("Excluir esta despesa?"))return;expenses=expenses.filter(e=>e.id!==del.dataset.delete);if(editingExpenseId===del.dataset.delete)cancelExpenseEdit();saveExpenses();render()});
   $("export-xlsx").addEventListener("click",()=>{
     if(!window.XLSX){alert("Não foi possível carregar o gerador de Excel. Verifique sua conexão e tente novamente.");return}
     const data=[
